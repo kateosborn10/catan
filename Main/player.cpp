@@ -3,9 +3,9 @@
 
 Player::Player(PlayerConfig* config)
 {
-    hand_.oil = 0;
-    hand_.steel = 0;
-    hand_.food = 0;
+    hand_->oil = 0;
+    hand_->steel = 0;
+    hand_->food = 0;
     config_ = config;
     std::cout << "Player constructed! Name is: " << config_->name << std::endl;
 
@@ -24,34 +24,34 @@ Hand* Player::get_hand() {
     return hand_;
 }
 
-void* Player::set_hand(Hand* hand) {
+void Player::set_hand(Hand* hand) {
     hand_ = hand;
 }
 
 void Player::AddResourceToHand(Resource resource) {
     switch(resource) {
-    case oil:
-        hand_.oil++;
+    case Resource::Oil:
+        hand_->oil++;
         break;
-    case food:
-        hand_.food++;
+    case Resource::Food:
+        hand_->food++;
         break;
-    case steel:
-        hand_.steel++;
+    case Resource::Steel:
+        hand_->steel++;
         break;
     }
 }
 
 void Player::RemoveResourceFromHand(Resource resource) {
     switch(resource) {
-    case oil:
-        hand_.oil--;
+    case Resource::Oil:
+        hand_->oil--;
         break;
-    case food:
-        hand_.food--;
+    case Resource::Food:
+        hand_->food--;
         break;
-    case steel:
-        hand_.steel--;
+    case Resource::Steel:
+        hand_->steel--;
         break;
     }
 }

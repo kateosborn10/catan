@@ -16,6 +16,7 @@
 
 
 #include "playerdisplayhandler.h"
+#include "playerdashboard.h"
 
 /**
  * @brief Game::Game constructor for the Game class. Responsible
@@ -35,6 +36,7 @@ Game::Game(QWidget *parent) :
     ui->boardGraphicsView->setScene(game_scene_);
     ui->playerGraphicsView->setScene(player_scene_);
     ui->handGraphicsView->setScene(hand_scene_);
+    ui->handGraphicsView->setAlignment(Qt::AlignLeft|Qt::AlignTop);
     ui->playerGraphicsView->setAlignment(Qt::AlignLeft|Qt::AlignTop);
     connect(ui->playGameButton, SIGNAL(released()), this, SLOT(PlayGame()));
     connect(ui->advanceTurnButton, SIGNAL(released()), this, SLOT(AdvanceTurn()));
@@ -46,6 +48,7 @@ Game::Game(QWidget *parent) :
     playerOptions << "2" << "3" << "4";
     ui->numberOfPlayersComboBox->addItems(playerOptions);
     set_game_state(GameState::Initial);
+    UpdatePlayerDashboard();
 }
 
 /**
@@ -68,7 +71,9 @@ void Game::SetInitialState() {
     ui->endGameButton->setDisabled(true);
     ui->startOverButton->setDisabled(true);
     ui->numberOfPlayersComboBox->setDisabled(false);
+    ui->handGraphicsView->hide();
 }
+
 /**
  * @brief Game::PlayGame is a slot that is signaled when a user presses
  * the play button on the ui. It calls set_game_state with PlayerTurn as the new_state,
@@ -82,7 +87,7 @@ void Game::PlayGame() {
     // set current player to player1
     current_player_index_ = -1;
     current_player_ = GetNextPlayer();
-
+    ui->handGraphicsView->show();
 }
 /**
  * @brief Game::AdvanceTurn is a slot that is signaled when a user presses advance
@@ -94,9 +99,12 @@ void Game::AdvanceTurn() {
     current_player_ = GetNextPlayer();
     if(current_player_->get_is_ai()){
         set_game_state(GameState::NonPlayerTurn);
+        ui->handGraphicsView->scene()->clear();
+
     }
     else{
         set_game_state(GameState::PlayerTurn);
+        UpdatePlayerDashboard();
     }
 
 }
@@ -106,6 +114,8 @@ void Game::AdvanceTurn() {
  */
 void Game::EndGame() {
     set_game_state(GameState::GameOver);
+    ui->handGraphicsView->hide();
+
 }
 
 /**
@@ -273,3 +283,17 @@ Player* Game::GetNextPlayer(){
     std::cout << "new player is: " << next_player->get_name() << " and is AI = " << next_player->get_is_ai() << std::endl;
     return next_player;
 }
+
+/**
+ * @brief Game::UpdatePlayerDashboard
+ */
+void Game::UpdatePlayerDashboard(){
+    PlayerDashboard* pd = new PlayerDashboard();
+    QGroupBox* resourceWidgets = new QGroupBox;
+    QVBoxLayout* resourceLayout = new QVBoxLayout;
+    resourceLayout->addWidget(pd->get_group_box());
+    resourceLayout->setMargin(2);
+    resourceWidgets->setLayout(resourceLayout);
+    hand_scene_->addWidget(resourceWidgets);
+}
+

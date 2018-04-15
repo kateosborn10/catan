@@ -54,3 +54,6 @@ HEADERS += \
 
 FORMS += \
         game.ui
+
+RESOURCES += \
+    resources.qrc

@@ -47,6 +47,7 @@ private:
     void SetNonPlayerTurnState();
     void SetGameOverState();
     void UpdatePlayersView();
+    void UpdatePlayerDashboard();
 };
 
 

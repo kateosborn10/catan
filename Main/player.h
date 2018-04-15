@@ -37,7 +37,7 @@ public:
 private:
     std::string name_;
     int score_;
-    Hand hand_;
+    Hand* hand_ = new Hand();
     PlayerConfig* config_;
 };
 
