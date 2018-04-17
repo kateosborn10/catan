@@ -5,6 +5,7 @@
 #include "player.h"
 #include <vector>
 #include <QGraphicsScene>
+#include "welcomescreen.h"
 
 namespace Ui {
 class Game;

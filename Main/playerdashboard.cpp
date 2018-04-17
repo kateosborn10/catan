@@ -1,26 +1,42 @@
 #include "playerdashboard.h"
 #include <iostream>
+#include <QVBoxLayout>
+#include <Qstring>
+#include "resourcewidget.h"
 
 PlayerDashboard::PlayerDashboard(QObject *parent) : QObject(parent)
 {
-    oil_image_ = new QLabel();
-    food_image_ = new QLabel();
-    steel_image_ = new QLabel();
+    QStringList buildOptions;
+
+    buildOptions << "Wall" << "Outpost" << "Base";
+
+    select_build_option_->addItems(buildOptions);
+
     QPixmap oil(":/images/oil");
-    oil = oil.scaled(80, 80, Qt::KeepAspectRatio);
     QPixmap food(":/images/food");
-    food = food.scaled(80, 80, Qt::KeepAspectRatio);
     QPixmap steel(":/images/steel");
-    steel = steel.scaled(80, 80, Qt::KeepAspectRatio);
-  //  std::cout << "Width: " << oil.width() << " height: " << oil.height() << std::endl;
-    oil_image_->setPixmap(oil);
-    food_image_->setPixmap(food);
-    steel_image_->setPixmap(steel);
 
-    layout_->addWidget(oil_image_);
-    layout_->addWidget(food_image_);
-    layout_->addWidget(steel_image_);
+    build_layout_->addWidget(select_build_option_);
+    build_layout_->addWidget(build_button_);
+    build_box_->setLayout(build_layout_);
 
-    group_box_ = new QGroupBox("Resources");
+    layout_->addWidget(build_box_);
+
+    ResourceWidget* oil_widget = new ResourceWidget(oil);
+    ResourceWidget* food_widget = new ResourceWidget(food);
+    ResourceWidget* steel_widget = new ResourceWidget(steel);
+    layout_->addWidget(oil_widget->get_group_box());
+    layout_->addWidget(food_widget->get_group_box());
+    layout_->addWidget(steel_widget->get_group_box());
+
+
+
     group_box_->setLayout(layout_);
+}
+
+void PlayerDashboard::UpdateCounts() {
+//    oil_count_->setText(QString::number(current_player_->get_hand()->oil));
+//    food_count_->setText(QString::number(current_player_->get_hand()->food));
+//    steel_count_->setText(QString::number(current_player_->get_hand()->steel));
+
 }

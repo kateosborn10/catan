@@ -48,8 +48,9 @@ Game::Game(QWidget *parent) :
     playerOptions << "2" << "3" << "4";
     ui->numberOfPlayersComboBox->addItems(playerOptions);
     set_game_state(GameState::Initial);
-    UpdatePlayerDashboard();
+
 }
+
 
 /**
  * @brief Game::~Game dtor for Game class, deletes ui instance
@@ -87,6 +88,7 @@ void Game::PlayGame() {
     // set current player to player1
     current_player_index_ = -1;
     current_player_ = GetNextPlayer();
+    UpdatePlayerDashboard();
     ui->handGraphicsView->show();
 }
 /**
@@ -289,6 +291,10 @@ Player* Game::GetNextPlayer(){
  */
 void Game::UpdatePlayerDashboard(){
     PlayerDashboard* pd = new PlayerDashboard();
+    Hand current_hand = { 1, 2, 3};
+    current_player_->set_hand(&current_hand);
+    pd->set_current_player(current_player_);
+    pd->UpdateCounts();
     QGroupBox* resourceWidgets = new QGroupBox;
     QVBoxLayout* resourceLayout = new QVBoxLayout;
     resourceLayout->addWidget(pd->get_group_box());

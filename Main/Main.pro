@@ -36,7 +36,10 @@ SOURCES += \
     humanplayer.cpp \
     aiplayer.cpp \
     playerdisplayhandler.cpp \
-    playerdashboard.cpp
+    playerdashboard.cpp \
+    welcomescreen.cpp \
+    resourcewidget.cpp
+
 
 HEADERS += \
         game.h \
@@ -50,10 +53,13 @@ HEADERS += \
     humanplayer.h \
     aiplayer.h \
     playerdisplayhandler.h \
-    playerdashboard.h
+    playerdashboard.h \
+    welcomescreen.h \
+    resourcewidget.h
 
 FORMS += \
-        game.ui
+        game.ui \
+    welcomescreen.ui
 
 RESOURCES += \
     resources.qrc
