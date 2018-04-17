@@ -3,7 +3,10 @@
 #include <QVBoxLayout>
 #include <Qstring>
 
-
+/**
+ * @brief PlayerDashboard::PlayerDashboard
+ * @param parent
+ */
 PlayerDashboard::PlayerDashboard(QObject *parent) : QObject(parent)
 {
     QStringList buildOptions;
@@ -28,12 +31,18 @@ PlayerDashboard::PlayerDashboard(QObject *parent) : QObject(parent)
     layout_->addWidget(oil_widget->get_group_box());
     layout_->addWidget(food_widget->get_group_box());
     layout_->addWidget(steel_widget->get_group_box());
+    layout_->setSpacing(10);
+
 
 
 
     group_box_->setLayout(layout_);
+//    group_box_->setBackgroundRole(QPalette::ColorRole::BrightText);
 }
 
+/**
+ * @brief PlayerDashboard::UpdateCounts
+ */
 void PlayerDashboard::UpdateCounts() {
     oil_widget->UpdateCount(current_player_->get_hand()->oil);
     food_widget->UpdateCount(current_player_->get_hand()->food);

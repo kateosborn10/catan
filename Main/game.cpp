@@ -73,6 +73,7 @@ void Game::SetInitialState() {
     ui->startOverButton->setDisabled(true);
     ui->numberOfPlayersComboBox->setDisabled(false);
     ui->handGraphicsView->hide();
+    ui->playerGraphicsView->setDisabled(false);
 }
 
 /**
@@ -141,6 +142,9 @@ void Game::SetPlayerTurnState() {
     ui->endGameButton->setDisabled(false);
     ui->startOverButton->setDisabled(true);
     ui->numberOfPlayersComboBox->setDisabled(true);
+    ui->playerGraphicsView->setDisabled(true);
+
+
 }
 
 /**
@@ -154,7 +158,8 @@ void Game::SetNonPlayerTurnState() {
     ui->endGameButton->setDisabled(false);
     ui->startOverButton->setDisabled(true);
     ui->numberOfPlayersComboBox->setDisabled(true);
-    ui->numberOfPlayersComboBox->setDisabled(true);
+    ui->playerGraphicsView->setDisabled(true);
+\
 }
 
 /**
@@ -291,14 +296,19 @@ Player* Game::GetNextPlayer(){
  */
 void Game::UpdatePlayerDashboard(){
     PlayerDashboard* pd = new PlayerDashboard();
-    Hand current_hand = { 1, 2, 3};
+    Hand current_hand;
+    if(current_player_->get_name() == "Spence"){
+        current_hand= {2, 4, 6};
+    }else{
+        current_hand = { 1, 2, 3};
+    }
     current_player_->set_hand(&current_hand);
     pd->set_current_player(current_player_);
     pd->UpdateCounts();
     QGroupBox* resourceWidgets = new QGroupBox;
     QVBoxLayout* resourceLayout = new QVBoxLayout;
     resourceLayout->addWidget(pd->get_group_box());
-    resourceLayout->setMargin(2);
+    resourceLayout->setMargin(.25);
     resourceWidgets->setLayout(resourceLayout);
     hand_scene_->addWidget(resourceWidgets);
 }
