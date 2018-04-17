@@ -7,6 +7,7 @@
 #include <QVBoxLayout>
 #include <QtWidgets>
 #include <player.h>
+#include "resourcewidget.h"
 
 class PlayerDashboard : public QObject
 {
@@ -30,6 +31,9 @@ private:
     QGroupBox* build_box_ = new QGroupBox();
     QComboBox* select_build_option_ = new QComboBox();
     QPushButton* build_button_ = new QPushButton("Build");
+    ResourceWidget* oil_widget;
+    ResourceWidget* food_widget;
+    ResourceWidget* steel_widget;
 };
 
 #endif // PLAYERDASHBOARD_H

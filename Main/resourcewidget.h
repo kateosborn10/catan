@@ -10,6 +10,7 @@ class ResourceWidget
 public:
     ResourceWidget(QPixmap map);
     QGroupBox* get_group_box(){return group_box_;}
+    void UpdateCount(int count);
 private:
     QLabel* image_ = new QLabel;
     QLabel* count_ = new QLabel("0");

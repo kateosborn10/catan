@@ -2,7 +2,7 @@
 #include <iostream>
 #include <QVBoxLayout>
 #include <Qstring>
-#include "resourcewidget.h"
+
 
 PlayerDashboard::PlayerDashboard(QObject *parent) : QObject(parent)
 {
@@ -22,9 +22,9 @@ PlayerDashboard::PlayerDashboard(QObject *parent) : QObject(parent)
 
     layout_->addWidget(build_box_);
 
-    ResourceWidget* oil_widget = new ResourceWidget(oil);
-    ResourceWidget* food_widget = new ResourceWidget(food);
-    ResourceWidget* steel_widget = new ResourceWidget(steel);
+    oil_widget = new ResourceWidget(oil);
+    food_widget = new ResourceWidget(food);
+    steel_widget = new ResourceWidget(steel);
     layout_->addWidget(oil_widget->get_group_box());
     layout_->addWidget(food_widget->get_group_box());
     layout_->addWidget(steel_widget->get_group_box());
@@ -35,8 +35,8 @@ PlayerDashboard::PlayerDashboard(QObject *parent) : QObject(parent)
 }
 
 void PlayerDashboard::UpdateCounts() {
-//    oil_count_->setText(QString::number(current_player_->get_hand()->oil));
-//    food_count_->setText(QString::number(current_player_->get_hand()->food));
-//    steel_count_->setText(QString::number(current_player_->get_hand()->steel));
+    oil_widget->UpdateCount(current_player_->get_hand()->oil);
+    food_widget->UpdateCount(current_player_->get_hand()->food);
+    steel_widget->UpdateCount(current_player_->get_hand()->steel);
 
 }
