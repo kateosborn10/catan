@@ -3,9 +3,6 @@
 
 Player::Player(PlayerConfig* config)
 {
-    hand_->oil = 0;
-    hand_->steel = 0;
-    hand_->food = 0;
     config_ = config;
     std::cout << "Player constructed! Name is: " << config_->name << std::endl;
 
@@ -20,13 +17,6 @@ bool Player::get_is_ai(){
     return config_->is_ai;
 }
 
-Hand* Player::get_hand() {
-    return hand_;
-}
-
-void Player::set_hand(Hand* hand) {
-    hand_ = hand;
-}
 
 void Player::AddResourceToHand(Resource resource) {
     switch(resource) {
@@ -56,3 +46,42 @@ void Player::RemoveResourceFromHand(Resource resource) {
     }
 }
 
+/**
+ * @brief Player::ValidateCanBuild
+ * @param index is 1 then Wall, if 2 then Outpost, if 3 then Base
+ */
+void Player::ValidateCanBuild(int index){
+    std::cout << "The player building is " << config_->name << std::endl;
+    if(index == 1){
+        std::cout << "Trying to build a wall!" << std::endl;
+        if(hand_->oil > 0 && hand_->steel > 0){
+            std::cout << "Success! Can build a wall!" << std::endl;
+            emit(ToggleBuild(false));
+
+        }else{
+            std::cout << "Fail! Cannot build a wall!" << std::endl;
+            emit(ToggleBuild(true));
+        }
+    }else if(index == 2){
+        std::cout << "Trying to build an outpost!" << std::endl;
+        if(hand_->oil > 0 && hand_->steel > 0 && hand_->food > 0){
+            std::cout << "Success! Can build an outpost!" << std::endl;
+            emit(ToggleBuild(false));
+
+        }else{
+            std::cout << "Fail! Cannot build an outpost!" << std::endl;
+            emit(ToggleBuild(true));
+        }
+    }else if(index == 3){
+        std::cout << "Trying to build an base!" << std::endl;
+        if(hand_->oil > 1 && hand_->steel > 1 && hand_->food > 1){
+            std::cout << "Success! Can build an base!" << std::endl;
+            emit(ToggleBuild(false));
+
+        }else{
+            std::cout << "Fail! Cannot build an outpost!" << std::endl;
+            emit(ToggleBuild(true));
+        }
+    }
+
+}

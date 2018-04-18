@@ -34,6 +34,7 @@ public slots:
 
 private:
     Ui::Game *ui;
+    WelcomeScreen screen_;
     GameState current_state_;
     std::vector<Player*> players_;
     std::vector<PlayerConfig*> player_configs_;

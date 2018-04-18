@@ -30,6 +30,8 @@ Game::Game(QWidget *parent) :
     ui(new Ui::Game)
 {
     ui->setupUi(this);
+    screen_.show();
+    screen_.exec();
     game_scene_ = new QGraphicsScene;
     player_scene_ = new QGraphicsScene;
     hand_scene_ = new QGraphicsScene;
@@ -296,13 +298,11 @@ Player* Game::GetNextPlayer(){
  */
 void Game::UpdatePlayerDashboard(){
     PlayerDashboard* pd = new PlayerDashboard();
-    Hand current_hand;
-    if(current_player_->get_name() == "Spence"){
-        current_hand= {2, 4, 6};
-    }else{
-        current_hand = { 1, 2, 3};
-    }
-    current_player_->set_hand(&current_hand);
+    Hand* current_hand = new Hand;
+    current_hand->oil = 2;
+    current_hand->food = 4;
+    current_hand->steel = 6;
+    current_player_->set_hand(current_hand);
     pd->set_current_player(current_player_);
     pd->UpdateCounts();
     QGroupBox* resourceWidgets = new QGroupBox;

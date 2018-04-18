@@ -2,7 +2,7 @@
 #define WELCOMESCREEN_H
 
 #include <QDialog>
-#include <game.h>
+
 
 
 
@@ -18,7 +18,7 @@ public:
     explicit WelcomeScreen(QWidget *parent = 0);
     ~WelcomeScreen();
     int get_number_players(){return number_players_;}
-    Ui::WelcomeScreen *ui;
+    Ui::WelcomeScreen* ui;
 
 
 private slots:

@@ -15,13 +15,14 @@ class PlayerDashboard : public QObject
 public:
     explicit PlayerDashboard(QObject *parent = nullptr);
     QGroupBox* get_group_box() { return group_box_; }
-    void set_current_player(Player* player) { current_player_ = player; }
+    void set_current_player(Player* player);
     Player* get_current_player() { return current_player_; }
     void UpdateCounts();
 
 signals:
 
 public slots:
+      void EnableBuild(bool disable_value);
 
 private:
     QHBoxLayout* layout_ = new QHBoxLayout();

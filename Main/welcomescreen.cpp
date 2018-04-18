@@ -9,6 +9,7 @@ WelcomeScreen::WelcomeScreen(QWidget *parent) :
 
 
 
+
 }
 
 WelcomeScreen::~WelcomeScreen()
@@ -16,8 +17,3 @@ WelcomeScreen::~WelcomeScreen()
     delete ui;
 }
 
-//void WelcomeScreen::on_numPlayersComboBox_currentIndexChanged(int index)
-//{
-//    number_players_ = index + 2;
-
-//}
