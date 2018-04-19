@@ -1,3 +1,8 @@
+/**
+  Allows players to input their names and check a box if AI
+  Creates a widget box that game can add to left side of main window
+*/
+
 #ifndef PLAYERDISPLAYHANDLER_H
 #define PLAYERDISPLAYHANDLER_H
 
@@ -27,7 +32,6 @@ private:
     QCheckBox* is_ai_check_box_;
     QHBoxLayout *layout_ = new QHBoxLayout;
     QGroupBox* group_box_;
-
 };
 
 #endif // PLAYERDISPLAYHANDLER_H

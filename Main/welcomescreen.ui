@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>429</width>
-    <height>365</height>
+    <width>400</width>
+    <height>300</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,10 +16,10 @@
   <widget class="QDialogButtonBox" name="startGameButtonBox">
    <property name="geometry">
     <rect>
-     <x>120</x>
-     <y>300</y>
-     <width>171</width>
-     <height>31</height>
+     <x>150</x>
+     <y>150</y>
+     <width>81</width>
+     <height>32</height>
     </rect>
    </property>
    <property name="orientation">
@@ -35,53 +35,48 @@
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>120</x>
-     <y>20</y>
-     <width>231</width>
-     <height>41</height>
+     <x>50</x>
+     <y>22</y>
+     <width>291</width>
+     <height>27</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Palatino</family>
+     <pointsize>24</pointsize>
+     <weight>75</weight>
+     <italic>true</italic>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="autoFillBackground">
+    <bool>false</bool>
    </property>
    <property name="text">
     <string>Welcome to Settlers of War</string>
    </property>
   </widget>
-  <widget class="QWidget" name="layoutWidget">
+  <widget class="QLabel" name="label_2">
    <property name="geometry">
     <rect>
-     <x>50</x>
-     <y>160</y>
-     <width>274</width>
-     <height>26</height>
+     <x>120</x>
+     <y>100</y>
+     <width>154</width>
+     <height>20</height>
     </rect>
    </property>
-   <layout class="QHBoxLayout" name="horizontalLayout">
-    <item>
-     <widget class="QLabel" name="label_2">
-      <property name="text">
-       <string>Choose number of players:</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QComboBox" name="numPlayersComboBox">
-      <item>
-       <property name="text">
-        <string>2</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>3</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>4</string>
-       </property>
-      </item>
-     </widget>
-    </item>
-   </layout>
+   <property name="font">
+    <font>
+     <family>Palatino</family>
+     <pointsize>18</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Press OK to begin!</string>
+   </property>
   </widget>
  </widget>
  <resources/>

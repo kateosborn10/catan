@@ -2,8 +2,9 @@
 #include <iostream>
 
 /**
- * @brief ResourceWidget::ResourceWidget
- * @param map
+ * @brief ResourceWidget::ResourceWidget creates a group box that
+ * represents a resource. Has an image and a label displaying count
+ * @param map is the Qpixmap of the resource image
  */
 ResourceWidget::ResourceWidget(QPixmap map)
 {
@@ -15,7 +16,9 @@ ResourceWidget::ResourceWidget(QPixmap map)
 }
 
 /**
- * @brief ResourceWidget::UpdateCount
+ * @brief ResourceWidget::UpdateCount sets the label displaying
+ * the count to the param count.
+ * @param count is the current resource count corresponding to the player
  */
 void ResourceWidget::UpdateCount(int count)
 {

@@ -1,6 +1,7 @@
 /**
-*
-*
+Base class for Players
+Contains structs for a players hand and buildings
+Keeps score
 */
 
 
@@ -11,6 +12,7 @@
 #include "resource.h"
 #include <vector>
 #include <QObject>
+#include "buildings.h"
 
 struct PlayerConfig {
     std::string name;
@@ -24,7 +26,7 @@ struct Hand {
     int food = 0;
 };
 
-struct Buildings {
+struct BuildingsOwned {
     int walls = 0;
     int outposts = 0;
     int bases = 0;
@@ -39,13 +41,16 @@ public:
     bool get_is_ai();
     Hand* get_hand(){return hand_;}
     void set_hand(Hand* hand) {hand_ = hand;}
-    Buildings* get_buildings(){ return buildings_;}
-    void set_buildings(Buildings* buildings){buildings_ = buildings;}
+    BuildingsOwned* get_buildings_owned(){ return buildings_owned_;}
+    void set_buildings_owned(BuildingsOwned* buildings){buildings_owned_ = buildings;}
+    int GetBuildingOwnedCount(Buildings building);
+    void AddBuildingToBuildingsOwned(Buildings building);
     void AddResourceToHand(Resource resource);
     void RemoveResourceFromHand(Resource resource);
+    bool ValidateCanBuild(Buildings building);
 
 public slots:
-    void ValidateCanBuild(int index);
+
 
 signals:
     void ToggleBuild(bool disable_value);
@@ -54,7 +59,7 @@ signals:
 private:
     int score_;
     Hand* hand_ = new Hand();
-    Buildings* buildings_ = new Buildings();
+    BuildingsOwned* buildings_owned_ = new BuildingsOwned();
     PlayerConfig* config_;
 };
 

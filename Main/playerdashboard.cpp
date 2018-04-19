@@ -4,27 +4,26 @@
 #include <Qstring>
 
 /**
- * @brief PlayerDashboard::PlayerDashboard
+ * @brief PlayerDashboard::PlayerDashboard constructor. Creates all the widgets
+ * that appear on the player dashboard.
  * @param parent
  */
 PlayerDashboard::PlayerDashboard(QObject *parent) : QObject(parent)
 {
+    // build widget: contains build options combo box and build button in VBox
     QStringList buildOptions;
     buildOptions << "Select One" << "Wall" << "Outpost" << "Base";
     select_build_option_->addItems(buildOptions);
-
-
-    QPixmap oil(":/images/oil");
-    QPixmap food(":/images/food");
-    QPixmap steel(":/images/steel");
-
     build_layout_->addWidget(select_build_option_);
     build_layout_->addWidget(build_button_);
     build_button_->setDisabled(true);
     build_box_->setLayout(build_layout_);
     layout_->addWidget(build_box_);
 
-
+    // resource widgets: images and counts. Creates ResourceWidget objects
+    QPixmap oil(":/images/oil");
+    QPixmap food(":/images/food");
+    QPixmap steel(":/images/steel");
     oil_widget = new ResourceWidget(oil);
     food_widget = new ResourceWidget(food);
     steel_widget = new ResourceWidget(steel);
@@ -33,34 +32,95 @@ PlayerDashboard::PlayerDashboard(QObject *parent) : QObject(parent)
     layout_->addWidget(steel_widget->get_group_box());
     layout_->setSpacing(10);
 
+    // scorebox widget
+    layout_->addWidget(scoreboard_box_->get_group_box());
 
-
-
+    // set the layout of the group box to the layout with all the widgets
     group_box_->setLayout(layout_);
-//    group_box_->setBackgroundRole(QPalette::ColorRole::BrightText);
+
+    // when user hits build button execute BuildButtonPressed method.
+    connect(build_button_, SIGNAL(pressed()),this, SLOT(BuildButtonPressed()));
+
 }
 
 /**
- * @brief PlayerDashboard::UpdateCounts
+ * @brief PlayerDashboard::UpdateCounts updates the display counts of resources and scorebox
  */
 void PlayerDashboard::UpdateCounts() {
     oil_widget->UpdateCount(current_player_->get_hand()->oil);
     food_widget->UpdateCount(current_player_->get_hand()->food);
     steel_widget->UpdateCount(current_player_->get_hand()->steel);
-
+    scoreboard_box_->UpdateCounts(current_player_->get_buildings_owned());
 }
 
 /**
- * @brief PlayerDashboard::set_current_player
- * @param player
+ * @brief PlayerDashboard::set_current_player sets the current player field.
+ * connects the signals and slots between player and dashboard.
+ * @param player is the current player in the game
  */
 void PlayerDashboard::set_current_player(Player *player){
     current_player_ = player;
     std::cout << "setting current player to: " << current_player_->get_name() << std::endl;
-    connect(select_build_option_, SIGNAL(currentIndexChanged(int)), current_player_, SLOT(ValidateCanBuild(int)));
+    // when user changes the index of the build options combo box call OnBuildOptionSelected method
+    connect(select_build_option_, SIGNAL(currentIndexChanged(int)), this, SLOT(OnBuildOptionSelected(int)));
+    // when the current player emits the signal ToggleBuild call EnableBuild method
     connect(current_player_, SIGNAL(ToggleBuild(bool)), this, SLOT(EnableBuild(bool)));
 }
 
+/**
+ * @brief PlayerDashboard::OnBuildOptionSelected slot called when user changes
+ * the index of the build options combo box. Determines which building the user
+ * has selected, stores this building type in current_building field, and passes it
+ * to the ValidateCanBuild method on the player.
+ * @param index
+ */
+void PlayerDashboard::OnBuildOptionSelected(int index){
+    current_building_ = Buildings::None;
+    Buildings building;
+    switch (index) {
+    case 1:
+        building = Buildings::Wall;
+        break;
+    case 2:
+        building = Buildings::Outpost;
+        break;
+    case 3:
+        building = Buildings::Base;
+        break;
+    default:
+        std::cout << "not a valid input!" << std::endl;
+        return;
+    }
+    if(current_player_->ValidateCanBuild(building))
+        current_building_ = building;
+
+}
+/**
+ * @brief PlayerDashboard::EnableBuild handles the enabling of the build button.
+ * If a player has the resources to build a given building type the player class
+ * emits a signal to enable the build button.
+ * @param disable_value will be false if the button needs to be enable.
+ */
 void PlayerDashboard::EnableBuild(bool disable_value){
     build_button_->setDisabled(disable_value);
+}
+
+/**
+ * @brief PlayerDashboard::ResetButtons used to reset the build and select build
+ * option combo box to their initial states: disabled and "Select One" respectively
+ */
+void PlayerDashboard::ResetButtons(){
+    build_button_->setDisabled(true);
+    select_build_option_->setCurrentIndex(0);
+}
+
+/**
+ * @brief PlayerDashboard::BuildButtonPressed for slot when user presses build this method
+ * will emit a signal to the game to tell it to place the building. Will also call ResetButtons
+ * method to set the intial states of the buttons.
+ */
+void PlayerDashboard::BuildButtonPressed() {
+    std::cout << "Build Button Pressed!" << std::endl;
+    emit PlaceBuilding(current_building_);
+    ResetButtons();
 }

@@ -1,10 +1,10 @@
+/**
+ Dialog box that pops up first to give instructions to user
+*/
 #ifndef WELCOMESCREEN_H
 #define WELCOMESCREEN_H
 
 #include <QDialog>
-
-
-
 
 namespace Ui {
 class WelcomeScreen;

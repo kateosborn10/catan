@@ -1,3 +1,9 @@
+/**
+Responsible for all the logic for playing the game
+Contains reference to the main window and the welcome screen
+Creates and maintains a list of players
+*/
+
 #ifndef GAME_H
 #define GAME_H
 
@@ -6,6 +12,7 @@
 #include <vector>
 #include <QGraphicsScene>
 #include "welcomescreen.h"
+#include "playerdashboard.h"
 
 namespace Ui {
 class Game;
@@ -25,17 +32,21 @@ public:
     GameState get_game_state() { return current_state_; }
     ~Game();
 
+signals:
+
 public slots:
     void PlayGame();
     void AdvanceTurn();
     void EndGame();
     void StartOver();
     void SetNumberOfPlayers(int index);
+    void BuildButtonPressed(Buildings building);
 
 private:
     Ui::Game *ui;
     WelcomeScreen screen_;
     GameState current_state_;
+    PlayerDashboard* dashboard_ = new PlayerDashboard();
     std::vector<Player*> players_;
     std::vector<PlayerConfig*> player_configs_;
     QGraphicsScene* game_scene_;
@@ -50,6 +61,7 @@ private:
     void SetGameOverState();
     void UpdatePlayersView();
     void UpdatePlayerDashboard();
+    void SetPlayerDashboard();
 };
 
 

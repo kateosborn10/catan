@@ -1,3 +1,6 @@
+/**
+  Contains a Resource enum class
+ */
 #ifndef RESOURCE_H
 #define RESOURCE_H
 

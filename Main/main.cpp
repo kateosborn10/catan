@@ -1,3 +1,9 @@
+/**
+  Settlers of War: A catan-based game
+  Kathryn Osborn
+  Final Project Checkpoint 2 CSCI 3010
+  */
+
 #include "game.h"
 
 #include <QApplication>
@@ -9,7 +15,5 @@ int main(int argc, char *argv[])
 
     Game g;
     g.show();
-//    WelcomeScreen ws;
-//    ws.show();
     return a.exec();
 }

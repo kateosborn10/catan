@@ -1,3 +1,7 @@
+/**
+  Creates a widget box with resource information
+  Is used by PlayerDashboard class
+ */
 #ifndef RESOURCEWIDGET_H
 #define RESOURCEWIDGET_H
 
@@ -16,8 +20,6 @@ private:
     QLabel* count_ = new QLabel("0");
     QVBoxLayout* layout_ = new QVBoxLayout();
     QGroupBox* group_box_ = new QGroupBox();
-
-
 };
 
 #endif // RESOURCEWIDGET_H

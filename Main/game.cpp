@@ -1,8 +1,3 @@
-/**
-* Game Class: Contains the ui object and controls the state of the game.
-*
-*/
-
 
 #include "game.h"
 #include "ui_game.h"
@@ -30,25 +25,32 @@ Game::Game(QWidget *parent) :
     ui(new Ui::Game)
 {
     ui->setupUi(this);
+    // the following two lines will show the welcome screen and wait for it to finish before executing game window
     screen_.show();
     screen_.exec();
+    //connect(screen_.ui->)
+    // instantiate graphics scenes
     game_scene_ = new QGraphicsScene;
     player_scene_ = new QGraphicsScene;
     hand_scene_ = new QGraphicsScene;
+    // set scences and alignments for graphics views
     ui->boardGraphicsView->setScene(game_scene_);
     ui->playerGraphicsView->setScene(player_scene_);
     ui->handGraphicsView->setScene(hand_scene_);
     ui->handGraphicsView->setAlignment(Qt::AlignLeft|Qt::AlignTop);
     ui->playerGraphicsView->setAlignment(Qt::AlignLeft|Qt::AlignTop);
+    // connect signals to slots on the game
     connect(ui->playGameButton, SIGNAL(released()), this, SLOT(PlayGame()));
     connect(ui->advanceTurnButton, SIGNAL(released()), this, SLOT(AdvanceTurn()));
     connect(ui->endGameButton, SIGNAL(released()), this, SLOT(EndGame()));
     connect(ui->startOverButton, SIGNAL(released()), this, SLOT(StartOver()));
     connect(ui->numberOfPlayersComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(SetNumberOfPlayers(int)));
+    // add items to number of players combo box
     QStringList playerOptions;
     //http://doc.qt.io/qt-5/qstringlist.html
     playerOptions << "2" << "3" << "4";
     ui->numberOfPlayersComboBox->addItems(playerOptions);
+    // set the game state to Initial to begin
     set_game_state(GameState::Initial);
 
 }
@@ -75,14 +77,15 @@ void Game::SetInitialState() {
     ui->startOverButton->setDisabled(true);
     ui->numberOfPlayersComboBox->setDisabled(false);
     ui->handGraphicsView->hide();
+    // allow users to enter their names and check AI box
     ui->playerGraphicsView->setDisabled(false);
 }
 
 /**
  * @brief Game::PlayGame is a slot that is signaled when a user presses
  * the play button on the ui. It calls set_game_state with PlayerTurn as the new_state,
- * calls CreatePlayers to populate players_ list, and sets current_player_ field to the first
- * player.
+ * calls CreatePlayers to populate players_ list, sets current_player_ field to the first
+ * player, and calls method to update the player dashboard.
  */
 void Game::PlayGame() {
     //player goes first
@@ -91,7 +94,9 @@ void Game::PlayGame() {
     // set current player to player1
     current_player_index_ = -1;
     current_player_ = GetNextPlayer();
+    SetPlayerDashboard();
     UpdatePlayerDashboard();
+    // show the dashboard to the user
     ui->handGraphicsView->show();
 }
 /**
@@ -104,10 +109,12 @@ void Game::AdvanceTurn() {
     current_player_ = GetNextPlayer();
     if(current_player_->get_is_ai()){
         set_game_state(GameState::NonPlayerTurn);
-        ui->handGraphicsView->scene()->clear();
+        // if player is AI then don't show their hand
+        ui->handGraphicsView->hide();
 
     }
     else{
+        ui->handGraphicsView->show();
         set_game_state(GameState::PlayerTurn);
         UpdatePlayerDashboard();
     }
@@ -115,7 +122,7 @@ void Game::AdvanceTurn() {
 }
 /**
  * @brief Game::EndGame is a slot that is signaled when a user pressed end game
- * button and sets game state to GameOver
+ * button. Sets game state to GameOver and clears the hand graphics view
  */
 void Game::EndGame() {
     set_game_state(GameState::GameOver);
@@ -143,6 +150,7 @@ void Game::SetPlayerTurnState() {
     ui->advanceTurnButton->setDisabled(false);
     ui->endGameButton->setDisabled(false);
     ui->startOverButton->setDisabled(true);
+    // prevent users from changing number of players or player info now that game play has begun
     ui->numberOfPlayersComboBox->setDisabled(true);
     ui->playerGraphicsView->setDisabled(true);
 
@@ -294,22 +302,70 @@ Player* Game::GetNextPlayer(){
 }
 
 /**
- * @brief Game::UpdatePlayerDashboard
+ * @brief Game::UpdatePlayerDashboard sets the current player
+ * of the dashboard, updates the resource counts,
+ * and calls reset button method on dashboard to get ready for new player.
  */
 void Game::UpdatePlayerDashboard(){
-    PlayerDashboard* pd = new PlayerDashboard();
+    // this is for testing purposes, in future will not hard-code hand for players
     Hand* current_hand = new Hand;
     current_hand->oil = 2;
     current_hand->food = 4;
     current_hand->steel = 6;
     current_player_->set_hand(current_hand);
-    pd->set_current_player(current_player_);
-    pd->UpdateCounts();
+    dashboard_->set_current_player(current_player_);
+    dashboard_->UpdateCounts();
+    dashboard_->ResetButtons();
+
+
+}
+
+/**
+ * @brief Game::SetPlayerDashboard connects PlaceBuilding signal on dashboard to game
+ * and sets the handscene to the resourceWidgets from player dashboard.
+ */
+void Game::SetPlayerDashboard(){
+    connect(dashboard_, SIGNAL(PlaceBuilding(Buildings)), this, SLOT(BuildButtonPressed(Buildings)));
     QGroupBox* resourceWidgets = new QGroupBox;
     QVBoxLayout* resourceLayout = new QVBoxLayout;
-    resourceLayout->addWidget(pd->get_group_box());
+    resourceLayout->addWidget(dashboard_->get_group_box());
     resourceLayout->setMargin(.25);
     resourceWidgets->setLayout(resourceLayout);
     hand_scene_->addWidget(resourceWidgets);
 }
 
+/**
+ * @brief Game::BuildButtonPressed is a slot called by player dashboard when
+ * player pressed the build button. Responsible for decrementing the player's hand
+ * based on what building they would like to build. Note that validation for the build
+ * has already occurred. Also increments the associated buildings_owned count on player.
+ * @param building
+ */
+void Game::BuildButtonPressed(Buildings building){
+    std::cout << "Placing building!" << std::endl;
+    //decrement resources
+    switch(building){
+    case Buildings::Wall:
+        current_player_->RemoveResourceFromHand(Resource::Oil);
+        current_player_->RemoveResourceFromHand(Resource::Steel);
+        break;
+    case Buildings::Outpost:
+        current_player_->RemoveResourceFromHand(Resource::Oil);
+        current_player_->RemoveResourceFromHand(Resource::Steel);
+        current_player_->RemoveResourceFromHand(Resource::Food);
+        break;
+
+    case Buildings::Base:
+        current_player_->RemoveResourceFromHand(Resource::Oil);
+        current_player_->RemoveResourceFromHand(Resource::Steel);
+        current_player_->RemoveResourceFromHand(Resource::Food);
+        current_player_->RemoveResourceFromHand(Resource::Oil);
+        current_player_->RemoveResourceFromHand(Resource::Steel);
+        current_player_->RemoveResourceFromHand(Resource::Food);
+        break;
+    default:
+        return;
+    }
+    current_player_->AddBuildingToBuildingsOwned(building);
+    dashboard_->UpdateCounts();
+}

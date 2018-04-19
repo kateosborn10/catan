@@ -1,3 +1,7 @@
+/**
+ Inherits Player Object
+ Abstracts the AI controlled players
+*/
 #ifndef AIPLAYER_H
 #define AIPLAYER_H
 #include "player.h"

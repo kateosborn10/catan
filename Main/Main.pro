@@ -28,7 +28,6 @@ SOURCES += \
         main.cpp \
         game.cpp \
     tile.cpp \
-    structure.cpp \
     player.cpp \
     node.cpp \
     edge.cpp \
@@ -38,14 +37,14 @@ SOURCES += \
     playerdisplayhandler.cpp \
     playerdashboard.cpp \
     welcomescreen.cpp \
-    resourcewidget.cpp
+    resourcewidget.cpp \
+    scoreboardwidget.cpp
 
 
 HEADERS += \
         game.h \
     tile.h \
     resource.h \
-    structure.h \
     player.h \
     node.h \
     edge.h \
@@ -55,7 +54,9 @@ HEADERS += \
     playerdisplayhandler.h \
     playerdashboard.h \
     welcomescreen.h \
-    resourcewidget.h
+    resourcewidget.h \
+    buildings.h \
+    scoreboardwidget.h
 
 FORMS += \
         game.ui \

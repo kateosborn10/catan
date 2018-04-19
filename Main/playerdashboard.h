@@ -1,6 +1,10 @@
 #ifndef PLAYERDASHBOARD_H
 #define PLAYERDASHBOARD_H
-
+/**
+  Player dashboard shows at bottom of main window
+  Displays resources and their respective count on each player's turn
+  Gives build options
+*/
 #include <QObject>
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -8,6 +12,8 @@
 #include <QtWidgets>
 #include <player.h>
 #include "resourcewidget.h"
+#include "buildings.h"
+#include "scoreboardwidget.h"
 
 class PlayerDashboard : public QObject
 {
@@ -18,11 +24,15 @@ public:
     void set_current_player(Player* player);
     Player* get_current_player() { return current_player_; }
     void UpdateCounts();
+    void ResetButtons(); // reset buttons on dashboard to initial sates
 
 signals:
+      void PlaceBuilding(Buildings building);
 
 public slots:
+      void OnBuildOptionSelected(int index);
       void EnableBuild(bool disable_value);
+      void BuildButtonPressed();
 
 private:
     QHBoxLayout* layout_ = new QHBoxLayout();
@@ -35,6 +45,8 @@ private:
     ResourceWidget* oil_widget;
     ResourceWidget* food_widget;
     ResourceWidget* steel_widget;
+    Buildings current_building_;
+    ScoreboardWidget* scoreboard_box_ = new ScoreboardWidget();
 };
 
 #endif // PLAYERDASHBOARD_H
