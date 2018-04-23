@@ -46,7 +46,7 @@ private:
     Ui::Game *ui;
     WelcomeScreen screen_;
     GameState current_state_;
-    PlayerDashboard* dashboard_ = new PlayerDashboard();
+    PlayerDashboard* dashboard_;
     std::vector<Player*> players_;
     std::vector<PlayerConfig*> player_configs_;
     QGraphicsScene* game_scene_;
@@ -54,6 +54,7 @@ private:
     QGraphicsScene* player_scene_;
     Player* current_player_;
     int player_count_;
+    int num_players_;
     int current_player_index_;
     void SetInitialState();
     void SetPlayerTurnState();

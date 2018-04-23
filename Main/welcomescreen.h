@@ -22,6 +22,7 @@ public:
 
 
 private slots:
+    void OnNumberPlayersChanged(int index);
 
 
 private:

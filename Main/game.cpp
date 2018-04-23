@@ -28,7 +28,8 @@ Game::Game(QWidget *parent) :
     // the following two lines will show the welcome screen and wait for it to finish before executing game window
     screen_.show();
     screen_.exec();
-    //connect(screen_.ui->)
+    //get number of players from welcomescreen
+    num_players_ = screen_.get_number_players();
     // instantiate graphics scenes
     game_scene_ = new QGraphicsScene;
     player_scene_ = new QGraphicsScene;
@@ -94,6 +95,7 @@ void Game::PlayGame() {
     // set current player to player1
     current_player_index_ = -1;
     current_player_ = GetNextPlayer();
+    dashboard_ = new PlayerDashboard();
     SetPlayerDashboard();
     UpdatePlayerDashboard();
     // show the dashboard to the user
@@ -127,6 +129,7 @@ void Game::AdvanceTurn() {
 void Game::EndGame() {
     set_game_state(GameState::GameOver);
     ui->handGraphicsView->hide();
+    delete dashboard_;
 
 }
 
@@ -346,22 +349,19 @@ void Game::BuildButtonPressed(Buildings building){
     //decrement resources
     switch(building){
     case Buildings::Wall:
-        current_player_->RemoveResourceFromHand(Resource::Oil);
-        current_player_->RemoveResourceFromHand(Resource::Steel);
+        current_player_->RemoveResourceFromHand(Resource::Oil, 1);
+        current_player_->RemoveResourceFromHand(Resource::Steel, 1);
         break;
     case Buildings::Outpost:
-        current_player_->RemoveResourceFromHand(Resource::Oil);
-        current_player_->RemoveResourceFromHand(Resource::Steel);
-        current_player_->RemoveResourceFromHand(Resource::Food);
+        current_player_->RemoveResourceFromHand(Resource::Oil, 1);
+        current_player_->RemoveResourceFromHand(Resource::Steel, 1);
+        current_player_->RemoveResourceFromHand(Resource::Food, 1);
         break;
 
     case Buildings::Base:
-        current_player_->RemoveResourceFromHand(Resource::Oil);
-        current_player_->RemoveResourceFromHand(Resource::Steel);
-        current_player_->RemoveResourceFromHand(Resource::Food);
-        current_player_->RemoveResourceFromHand(Resource::Oil);
-        current_player_->RemoveResourceFromHand(Resource::Steel);
-        current_player_->RemoveResourceFromHand(Resource::Food);
+        current_player_->RemoveResourceFromHand(Resource::Oil, 2);
+        current_player_->RemoveResourceFromHand(Resource::Steel, 2);
+        current_player_->RemoveResourceFromHand(Resource::Food, 2);
         break;
     default:
         return;

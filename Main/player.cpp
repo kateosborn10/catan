@@ -42,6 +42,9 @@ void Player::AddBuildingToBuildingsOwned(Buildings building){
         break;
     case Buildings::Base:
         buildings_owned_->bases++;
+        break;
+    default:
+        break;
     }
 }
 
@@ -72,16 +75,18 @@ int Player::GetBuildingOwnedCount(Buildings building){
  * count in hand
  * @param resource is the resource count that needs to be incremented
  */
-void Player::AddResourceToHand(Resource resource) {
+void Player::AddResourceToHand(Resource resource, int number) {
     switch(resource) {
     case Resource::Oil:
-        hand_->oil++;
+        hand_->oil += number;
         break;
     case Resource::Food:
-        hand_->food++;
+        hand_->food += number;
         break;
     case Resource::Steel:
-        hand_->steel++;
+        hand_->steel += number;
+        break;
+    default:
         break;
     }
 }
@@ -90,16 +95,18 @@ void Player::AddResourceToHand(Resource resource) {
  * @brief Player::RemoveResourceFromHand will decrement resource count of a given resource
  * @param resource is the resource count that needs to be decremented
  */
-void Player::RemoveResourceFromHand(Resource resource) {
+void Player::RemoveResourceFromHand(Resource resource, int number) {
     switch(resource) {
     case Resource::Oil:
-        hand_->oil--;
+        hand_->oil -= number;
         break;
     case Resource::Food:
-        hand_->food--;
+        hand_->food -= number;
         break;
     case Resource::Steel:
-        hand_->steel--;
+        hand_->steel -= number;
+        break;
+    default:
         break;
     }
 }
@@ -160,6 +167,32 @@ bool Player::ValidateCanBuild(Buildings building){
         }
 
     }
+}
 
+/**
+ * @brief Player::ValidateCanTrade
+ * @param resource
+ */
+bool Player::ValidateCanTrade(Resource trade_away, Resource trade_for){
+    bool return_value = false;
+    if(trade_away == Resource::None || trade_for == Resource::None)
+        return return_value;
 
+    switch (trade_away) {
+    case Resource::Oil:
+        if(hand_->oil > 2)
+            return_value = true;
+        break;
+    case Resource::Food:
+        if(hand_->food > 2)
+            return_value = true;
+        break;
+    case Resource::Steel:
+        if(hand_->steel > 2)
+            return_value = true;
+        break;
+    default:
+        break;
+    }
+  return return_value;
 }

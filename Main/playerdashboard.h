@@ -33,19 +33,33 @@ public slots:
       void OnBuildOptionSelected(int index);
       void EnableBuild(bool disable_value);
       void BuildButtonPressed();
+      void OnTradeAwayOptionSelected(int index);
+      void OnTradeForOptionSelected(int index);
+      void TradeButtonPressed();
 
 private:
+    Buildings current_building_;
+    Resource trade_for_ = Resource::None;
+    Resource trade_away_ = Resource::None;
     QHBoxLayout* layout_ = new QHBoxLayout();
     QGroupBox* group_box_ = new QGroupBox();
     Player* current_player_;
+    // build widget
     QVBoxLayout* build_layout_ = new QVBoxLayout();
     QGroupBox* build_box_ = new QGroupBox();
     QComboBox* select_build_option_ = new QComboBox();
     QPushButton* build_button_ = new QPushButton("Build");
+    // trade widget
+    QVBoxLayout* trade_layout_ = new QVBoxLayout();
+    QGroupBox* trade_box_ = new QGroupBox();
+    QComboBox* trade_for_option_ = new QComboBox();
+    QComboBox* trade_away_option_ = new QComboBox();
+    QPushButton* trade_button_ = new QPushButton("Trade");
+    // reource widgets
     ResourceWidget* oil_widget;
     ResourceWidget* food_widget;
     ResourceWidget* steel_widget;
-    Buildings current_building_;
+    // scoreboard widget
     ScoreboardWidget* scoreboard_box_ = new ScoreboardWidget();
 };
 

@@ -45,9 +45,12 @@ public:
     void set_buildings_owned(BuildingsOwned* buildings){buildings_owned_ = buildings;}
     int GetBuildingOwnedCount(Buildings building);
     void AddBuildingToBuildingsOwned(Buildings building);
-    void AddResourceToHand(Resource resource);
-    void RemoveResourceFromHand(Resource resource);
+    void AddResourceToHand(Resource resource, int number);
+    void RemoveResourceFromHand(Resource resource, int number);
     bool ValidateCanBuild(Buildings building);
+    bool ValidateCanTrade(Resource trade_away, Resource trade_for);
+
+
 
 public slots:
 

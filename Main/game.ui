@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1000</width>
-    <height>700</height>
+    <width>1200</width>
+    <height>1000</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,9 +18,9 @@
     <property name="geometry">
      <rect>
       <x>240</x>
-      <y>20</y>
-      <width>651</width>
-      <height>391</height>
+      <y>30</y>
+      <width>851</width>
+      <height>471</height>
      </rect>
     </property>
    </widget>
@@ -28,9 +28,9 @@
     <property name="geometry">
      <rect>
       <x>240</x>
-      <y>420</y>
-      <width>651</width>
-      <height>161</height>
+      <y>510</y>
+      <width>851</width>
+      <height>171</height>
      </rect>
     </property>
    </widget>
@@ -38,71 +38,67 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>20</y>
+      <y>30</y>
       <width>220</width>
-      <height>421</height>
+      <height>651</height>
      </rect>
     </property>
    </widget>
-   <widget class="QWidget" name="layoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>250</x>
-      <y>590</y>
-      <width>410</width>
-      <height>32</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QPushButton" name="endGameButton">
-       <property name="text">
-        <string>End Game</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="playGameButton">
-       <property name="text">
-        <string>Play</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="advanceTurnButton">
-       <property name="text">
-        <string>Advance Turn</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="startOverButton">
-       <property name="text">
-        <string>Start Over</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-   <widget class="QWidget" name="layoutWidget">
+   <widget class="QWidget" name="">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>450</y>
-      <width>223</width>
-      <height>26</height>
+      <y>690</y>
+      <width>645</width>
+      <height>34</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
-      <widget class="QLabel" name="numberOfPlayersLabel">
-       <property name="text">
-        <string>Number of Players</string>
-       </property>
-      </widget>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QLabel" name="numberOfPlayersLabel">
+         <property name="text">
+          <string>Number of Players</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="numberOfPlayersComboBox"/>
+       </item>
+      </layout>
      </item>
      <item>
-      <widget class="QComboBox" name="numberOfPlayersComboBox"/>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QPushButton" name="playGameButton">
+         <property name="text">
+          <string>Play</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="advanceTurnButton">
+         <property name="text">
+          <string>Advance Turn</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="startOverButton">
+         <property name="text">
+          <string>Start Over</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="endGameButton">
+         <property name="text">
+          <string>End Game</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </widget>
@@ -112,7 +108,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1000</width>
+     <width>1200</width>
      <height>22</height>
     </rect>
    </property>
