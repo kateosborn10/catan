@@ -38,7 +38,8 @@ SOURCES += \
     playerdashboard.cpp \
     welcomescreen.cpp \
     resourcewidget.cpp \
-    scoreboardwidget.cpp
+    scoreboardwidget.cpp \
+    vertex.cpp
 
 
 HEADERS += \
@@ -56,7 +57,8 @@ HEADERS += \
     welcomescreen.h \
     resourcewidget.h \
     buildings.h \
-    scoreboardwidget.h
+    scoreboardwidget.h \
+    vertex.h
 
 FORMS += \
         game.ui \

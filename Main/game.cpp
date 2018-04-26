@@ -8,7 +8,9 @@
 #include <QVBoxLayout>
 #include <QtWidgets>
 #include <string>
-
+#include <stdlib.h>
+#include <time.h>
+#include <map>
 
 #include "playerdisplayhandler.h"
 #include "playerdashboard.h"
@@ -34,10 +36,12 @@ Game::Game(QWidget *parent) :
     game_scene_ = new QGraphicsScene;
     player_scene_ = new QGraphicsScene;
     hand_scene_ = new QGraphicsScene;
+    build_card_scene_ = new QGraphicsScene;
     // set scences and alignments for graphics views
     ui->boardGraphicsView->setScene(game_scene_);
     ui->playerGraphicsView->setScene(player_scene_);
     ui->handGraphicsView->setScene(hand_scene_);
+    ui->buildCardGraphicsView->setScene(build_card_scene_);
     ui->handGraphicsView->setAlignment(Qt::AlignLeft|Qt::AlignTop);
     ui->playerGraphicsView->setAlignment(Qt::AlignLeft|Qt::AlignTop);
     // connect signals to slots on the game
@@ -78,8 +82,13 @@ void Game::SetInitialState() {
     ui->startOverButton->setDisabled(true);
     ui->numberOfPlayersComboBox->setDisabled(false);
     ui->handGraphicsView->hide();
+    ui->buildCardGraphicsView->hide();
+    ui->label->hide();
+    ui->label_2->hide();
+    ui->label_3->hide();
     // allow users to enter their names and check AI box
     ui->playerGraphicsView->setDisabled(false);
+
 }
 
 /**
@@ -100,6 +109,19 @@ void Game::PlayGame() {
     UpdatePlayerDashboard();
     // show the dashboard to the user
     ui->handGraphicsView->show();
+    ui->buildCardGraphicsView->show();
+    ui->label->show();
+    ui->label_2->show();
+    ui->label_3->show();
+    CreateBoard();
+    for(Tile* t: tiles_){
+        QPointF mid_point = t->GetMidPoint();
+        game_scene_->addEllipse(mid_point.rx(), mid_point.ry(),22, 22);
+        QGraphicsTextItem* dice_roll_number = new QGraphicsTextItem(QString::number(t->get_dice_roll_number()));
+        dice_roll_number->setPos(mid_point);
+        game_scene_->addItem(dice_roll_number);
+    }
+    CreateNodes();
 }
 /**
  * @brief Game::AdvanceTurn is a slot that is signaled when a user presses advance
@@ -120,7 +142,6 @@ void Game::AdvanceTurn() {
         set_game_state(GameState::PlayerTurn);
         UpdatePlayerDashboard();
     }
-
 }
 /**
  * @brief Game::EndGame is a slot that is signaled when a user pressed end game
@@ -368,4 +389,96 @@ void Game::BuildButtonPressed(Buildings building){
     }
     current_player_->AddBuildingToBuildingsOwned(building);
     dashboard_->UpdateCounts();
+}
+
+/**
+ * @brief Game::CreateBoard
+ * Creates a semi-random board.Try to maintain same numbers of resources
+ */
+void Game:: CreateBoard(){
+    Resource tile_resource;
+    int dice_roll_numbers[19] = {11, 12, 9, 4, 6, 5, 10, 3, 11, 4, 8, 2, 8, 10, 9, 3, 5, 2, 6};
+    srand(time(NULL));
+    int start_number = rand() % 3 + 1; // random number between 1 and 3 decides which tile we start with
+    QBrush brush;
+    QPen pen(Qt::black);
+    brush.setStyle(Qt::SolidPattern);
+    int i = 0;
+    for(QPolygonF poly: board_->get_polygon()){
+
+        switch(start_number){
+        case 1:
+            brush.setColor(QColor(64, 64, 64, 150));
+            tile_resource = Resource::Oil;
+            break;
+        case 2:
+            brush.setColor(QColor(255, 255, 102, 150));
+            tile_resource = Resource::Food;
+            break;
+        case 3:
+            brush.setColor(QColor(102, 153, 204, 150));
+            tile_resource = Resource::Steel;
+            break;
+        }
+
+        game_scene_->addPolygon(poly, pen, brush);
+        tiles_.push_back(new Tile(poly, tile_resource, dice_roll_numbers[i]));
+        if(start_number == 3)
+            start_number = 1;
+        else
+            start_number++;
+         i++;
+    }
+}
+
+
+bool operator<(const QPointF& l, const QPointF& r )
+{
+  return  ( &l < &r );
+}
+/**
+ * @brief Game::CreateNodes
+ */
+void Game::CreateNodes(){
+
+
+    std::vector<QPointF> tmp_vertices;
+    // fill tmp_vertices with all vertices on board, including repeats
+    for(Tile* t: tiles_){
+        for(QPointF p: t->get_polygon()){
+            tmp_vertices.push_back(p);
+
+        }
+    }
+
+    // clean the list of duplicates
+    std::vector<QPointF> clean_vertices;
+    bool found;
+    for(int i = 0; i < tmp_vertices.size(); i++){
+        found = false;
+        for(int j = 0; j < clean_vertices.size(); j++ ){
+            if(tmp_vertices.at(i) == clean_vertices.at(j)){
+                found = true;
+                break;
+            }
+        }
+        if(!found){
+            clean_vertices.push_back(tmp_vertices.at(i));
+        }
+
+    }
+
+    // make nodes
+
+    for(QPointF p: clean_vertices){
+        std::vector<Tile*> neighboring_tiles;
+        for(Tile* t: tiles_){
+            for(QPointF p2: t->get_polygon()){
+                if(p == p2)
+                    neighboring_tiles.push_back(t);
+            }
+        }
+        nodes_.push_back(new Node(p, neighboring_tiles));
+    }
+
 }

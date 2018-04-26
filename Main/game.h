@@ -13,6 +13,9 @@ Creates and maintains a list of players
 #include <QGraphicsScene>
 #include "welcomescreen.h"
 #include "playerdashboard.h"
+#include "board.h"
+#include "tile.h"
+#include "node.h"
 
 namespace Ui {
 class Game;
@@ -27,6 +30,7 @@ class Game : public QMainWindow
 public:
     explicit Game(QWidget *parent = 0);
     void CreatePlayers();
+    void CreateNodes();
     Player* GetNextPlayer();
     void set_game_state(GameState new_state);
     GameState get_game_state() { return current_state_; }
@@ -52,10 +56,14 @@ private:
     QGraphicsScene* game_scene_;
     QGraphicsScene* hand_scene_;
     QGraphicsScene* player_scene_;
+    QGraphicsScene* build_card_scene_;
+    Board* board_ = new Board();
     Player* current_player_;
     int player_count_;
     int num_players_;
     int current_player_index_;
+    std::vector<Tile*> tiles_;
+    std::vector<Node*> nodes_;
     void SetInitialState();
     void SetPlayerTurnState();
     void SetNonPlayerTurnState();
@@ -63,6 +71,8 @@ private:
     void UpdatePlayersView();
     void UpdatePlayerDashboard();
     void SetPlayerDashboard();
+    void CreateBoard();
+    int num_poly = 0;
 };
 
 
