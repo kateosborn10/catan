@@ -86,8 +86,7 @@ void PlayerDashboard::set_current_player(Player *player){
     connect(trade_away_option_, SIGNAL(currentIndexChanged(int)), this, SLOT(OnTradeAwayOptionSelected(int)));
     // when user changes the index of the trade away options combo box call OnTradeOptionSelected method
     connect(trade_for_option_, SIGNAL(currentIndexChanged(int)), this, SLOT(OnTradeForOptionSelected(int)));
-    // when the current player emits the signal ToggleBuild call EnableBuild method
-    connect(current_player_, SIGNAL(ToggleBuild(bool)), this, SLOT(EnableBuild(bool)));
+
 }
 
 /**
@@ -98,6 +97,7 @@ void PlayerDashboard::set_current_player(Player *player){
  * @param index
  */
 void PlayerDashboard::OnBuildOptionSelected(int index){
+    build_button_->setDisabled(true);
     current_building_ = Buildings::None;
     Buildings building;
     switch (index) {

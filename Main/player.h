@@ -13,11 +13,13 @@ Keeps score
 #include <vector>
 #include <QObject>
 #include "buildings.h"
+#include <QColor>
 
 struct PlayerConfig {
     std::string name;
     bool is_ai = false;
     int player_number;
+    QColor color;
 };
 
 struct Hand {
@@ -38,7 +40,10 @@ class Player: public QObject
 public:
     Player(PlayerConfig* config);
     std::string get_name();
+    bool get_build_validate(){ return build_validated_; }
+    void set_build_validate(bool value){ build_validated_ =  value; }
     bool get_is_ai();
+    Buildings get_current_build(){ return current_build_; }
     Hand* get_hand(){return hand_;}
     void set_hand(Hand* hand) {hand_ = hand;}
     BuildingsOwned* get_buildings_owned(){ return buildings_owned_;}
@@ -49,14 +54,13 @@ public:
     void RemoveResourceFromHand(Resource resource, int number);
     bool ValidateCanBuild(Buildings building);
     bool ValidateCanTrade(Resource trade_away, Resource trade_for);
-
-
+    QColor get_color() { return config_->color; }
+    void set_color(QColor color) { config_->color = color;}
 
 public slots:
 
 
 signals:
-    void ToggleBuild(bool disable_value);
 
 
 private:
@@ -64,6 +68,8 @@ private:
     Hand* hand_ = new Hand();
     BuildingsOwned* buildings_owned_ = new BuildingsOwned();
     PlayerConfig* config_;
+    bool build_validated_;
+    Buildings current_build_;
 };
 
 #endif // PLAYER_H

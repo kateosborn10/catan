@@ -11,9 +11,11 @@
 #include <stdlib.h>
 #include <time.h>
 #include <map>
-
+#include "dicerollnumber.h"
 #include "playerdisplayhandler.h"
 #include "playerdashboard.h"
+
+
 
 /**
  * @brief Game::Game constructor for the Game class. Responsible
@@ -27,35 +29,23 @@ Game::Game(QWidget *parent) :
     ui(new Ui::Game)
 {
     ui->setupUi(this);
-    // the following two lines will show the welcome screen and wait for it to finish before executing game window
-    screen_.show();
-    screen_.exec();
-    //get number of players from welcomescreen
-    num_players_ = screen_.get_number_players();
+    ShowWelcomeScreen();
     // instantiate graphics scenes
-    game_scene_ = new QGraphicsScene;
-    player_scene_ = new QGraphicsScene;
-    hand_scene_ = new QGraphicsScene;
-    build_card_scene_ = new QGraphicsScene;
+    CreateScenes();
     // set scences and alignments for graphics views
-    ui->boardGraphicsView->setScene(game_scene_);
-    ui->playerGraphicsView->setScene(player_scene_);
-    ui->handGraphicsView->setScene(hand_scene_);
-    ui->buildCardGraphicsView->setScene(build_card_scene_);
-    ui->handGraphicsView->setAlignment(Qt::AlignLeft|Qt::AlignTop);
-    ui->playerGraphicsView->setAlignment(Qt::AlignLeft|Qt::AlignTop);
+    SetScenes();
     // connect signals to slots on the game
     connect(ui->playGameButton, SIGNAL(released()), this, SLOT(PlayGame()));
     connect(ui->advanceTurnButton, SIGNAL(released()), this, SLOT(AdvanceTurn()));
     connect(ui->endGameButton, SIGNAL(released()), this, SLOT(EndGame()));
     connect(ui->startOverButton, SIGNAL(released()), this, SLOT(StartOver()));
-    connect(ui->numberOfPlayersComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(SetNumberOfPlayers(int)));
-    // add items to number of players combo box
+//    connect(ui->numberOfPlayersComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(SetNumberOfPlayers(int)));
+//    // add items to number of players combo box
     QStringList playerOptions;
     //http://doc.qt.io/qt-5/qstringlist.html
     playerOptions << "2" << "3" << "4";
     ui->numberOfPlayersComboBox->addItems(playerOptions);
-    // set the game state to Initial to begin
+//     set the game state to Initial to begin
     set_game_state(GameState::Initial);
 
 }
@@ -69,6 +59,26 @@ Game::~Game()
     delete ui;
 }
 
+void Game::ShowWelcomeScreen(){
+    // the following two lines will show the welcome screen and wait for it to finish before executing game window
+    screen_.show();
+    screen_.exec();
+}
+
+void Game::CreateScenes(){
+    game_scene_ = new QGraphicsScene;
+    player_scene_ = new QGraphicsScene;
+    hand_scene_ = new QGraphicsScene;
+    build_card_scene_ = new QGraphicsScene;
+}
+void Game::SetScenes(){
+    ui->boardGraphicsView->setScene(game_scene_);
+    ui->playerGraphicsView->setScene(player_scene_);
+    ui->handGraphicsView->setScene(hand_scene_);
+    ui->buildCardGraphicsView->setScene(build_card_scene_);
+    ui->handGraphicsView->setAlignment(Qt::AlignLeft|Qt::AlignTop);
+    ui->playerGraphicsView->setAlignment(Qt::AlignLeft|Qt::AlignTop);
+}
 /**
  * @brief Game::SetInitialState is called by set_game_state() and is
  * reponsible for disabling all user buttons except play and numbers
@@ -80,13 +90,14 @@ void Game::SetInitialState() {
     ui->advanceTurnButton->setDisabled(true);
     ui->endGameButton->setDisabled(true);
     ui->startOverButton->setDisabled(true);
-    ui->numberOfPlayersComboBox->setDisabled(false);
+    ui->numberOfPlayersComboBox->setDisabled(true);
     ui->handGraphicsView->hide();
     ui->buildCardGraphicsView->hide();
     ui->label->hide();
     ui->label_2->hide();
     ui->label_3->hide();
     // allow users to enter their names and check AI box
+    CreatePlayerWidgets();
     ui->playerGraphicsView->setDisabled(false);
 
 }
@@ -105,6 +116,7 @@ void Game::PlayGame() {
     current_player_index_ = -1;
     current_player_ = GetNextPlayer();
     dashboard_ = new PlayerDashboard();
+    connect(this, SIGNAL(DisableBuild(bool)), dashboard_, SLOT(EnableBuild(bool)));
     SetPlayerDashboard();
     UpdatePlayerDashboard();
     // show the dashboard to the user
@@ -113,14 +125,9 @@ void Game::PlayGame() {
     ui->label->show();
     ui->label_2->show();
     ui->label_3->show();
+    board_ = new Board();
     CreateBoard();
-    for(Tile* t: tiles_){
-        QPointF mid_point = t->GetMidPoint();
-        game_scene_->addEllipse(mid_point.rx(), mid_point.ry(),22, 22);
-        QGraphicsTextItem* dice_roll_number = new QGraphicsTextItem(QString::number(t->get_dice_roll_number()));
-        dice_roll_number->setPos(mid_point);
-        game_scene_->addItem(dice_roll_number);
-    }
+    DisplayDiceRollNumbers();
     CreateNodes();
 }
 /**
@@ -159,9 +166,13 @@ void Game::EndGame() {
  * over button. Sets game state to Initial and clears the players vector
  */
 void Game::StartOver() {
+    ClearGame();
+    DeleteAllDisplays();
+    CreateScenes();
+    SetScenes();
+    screen_.ResetComboBoxes();
+    ShowWelcomeScreen();
     set_game_state(GameState::Initial);
-    // clear the player list
-    players_.clear();
 }
 
 /**
@@ -234,38 +245,32 @@ void Game::set_game_state(GameState new_state) {
     current_state_ = new_state;
 }
 
-/**
- * @brief Game::SetNumberOfPlayers is a slot that is signaled by the number of players combo box.
- * When a user selects a number of players this method updates the list of player configs, dynamically
- * adapts to changing number of players.
- * @param index
- */
-void Game::SetNumberOfPlayers(int index) {
-    int new_number_of_players = index + 2;
-    int current_number_of_players = player_configs_.size();
-    //do nothing if number of players selected by user equals current number
-    if(current_number_of_players == new_number_of_players)
-        return;
-    //add new players if player selected a greater number of players
-    else if (new_number_of_players > current_number_of_players) {
-        int players_to_add = new_number_of_players - current_number_of_players;
-        while (players_to_add > 0) {
-            PlayerConfig* pc = new PlayerConfig();
-            pc->name = "";
-            player_configs_.push_back(pc);
-            players_to_add--;
-            UpdatePlayersView();
-        }
+
+void Game::CreatePlayerWidgets(){
+    //get number of players from welcomescreen
+    num_players_ = screen_.get_number_players();
+    human_players_ = screen_.get_number_human_players();
+    QColor human_colors[4] = {"red", "green", "darkyellow", "black"};
+    QColor ai_colors[4] = {"blue", "orange", "brown"};
+    // create human players
+    for(int i = 0; i < human_players_; i++){
+        PlayerConfig* pc = new PlayerConfig();
+        pc->name = "Enter name here";
+        pc->is_ai = false;
+        pc->color = human_colors[i];
+        player_configs_.push_back(pc);
     }
-    //remove new players if player selected a smaller number of players
-    else {
-        int players_to_remove = current_number_of_players - new_number_of_players;
-        while (players_to_remove > 0) {
-            player_configs_.pop_back();
-            players_to_remove--;
-            UpdatePlayersView();
-        }
+
+    // create ai players
+    for(int i = 0; i < num_players_ - human_players_; i++){
+        PlayerConfig* pc = new PlayerConfig();
+        pc->name = "Computer " + std::to_string(i+1);
+        pc->is_ai = true;
+        pc->color = ai_colors[i];
+        player_configs_.push_back(pc);
     }
+
+    UpdatePlayersView();
 }
 
 /**
@@ -305,7 +310,6 @@ void Game::CreatePlayers(){
         }
         players_.push_back(player);
     }
-    player_count_ = players_.size();
 }
 
 /**
@@ -314,14 +318,13 @@ void Game::CreatePlayers(){
  */
 Player* Game::GetNextPlayer(){
     Player* next_player;
-    if(current_player_index_ >= player_count_-1){
+    if(current_player_index_ >= num_players_-1){
         current_player_index_ = 0;
     }
     else{
         current_player_index_++;
     }
     next_player = players_[current_player_index_];
-    std::cout << "new player is: " << next_player->get_name() << " and is AI = " << next_player->get_is_ai() << std::endl;
     return next_player;
 }
 
@@ -353,43 +356,11 @@ void Game::SetPlayerDashboard(){
     QGroupBox* resourceWidgets = new QGroupBox;
     QVBoxLayout* resourceLayout = new QVBoxLayout;
     resourceLayout->addWidget(dashboard_->get_group_box());
-    resourceLayout->setMargin(.25);
+    resourceLayout->setMargin(1);
     resourceWidgets->setLayout(resourceLayout);
     hand_scene_->addWidget(resourceWidgets);
 }
 
-/**
- * @brief Game::BuildButtonPressed is a slot called by player dashboard when
- * player pressed the build button. Responsible for decrementing the player's hand
- * based on what building they would like to build. Note that validation for the build
- * has already occurred. Also increments the associated buildings_owned count on player.
- * @param building
- */
-void Game::BuildButtonPressed(Buildings building){
-    std::cout << "Placing building!" << std::endl;
-    //decrement resources
-    switch(building){
-    case Buildings::Wall:
-        current_player_->RemoveResourceFromHand(Resource::Oil, 1);
-        current_player_->RemoveResourceFromHand(Resource::Steel, 1);
-        break;
-    case Buildings::Outpost:
-        current_player_->RemoveResourceFromHand(Resource::Oil, 1);
-        current_player_->RemoveResourceFromHand(Resource::Steel, 1);
-        current_player_->RemoveResourceFromHand(Resource::Food, 1);
-        break;
-
-    case Buildings::Base:
-        current_player_->RemoveResourceFromHand(Resource::Oil, 2);
-        current_player_->RemoveResourceFromHand(Resource::Steel, 2);
-        current_player_->RemoveResourceFromHand(Resource::Food, 2);
-        break;
-    default:
-        return;
-    }
-    current_player_->AddBuildingToBuildingsOwned(building);
-    dashboard_->UpdateCounts();
-}
 
 /**
  * @brief Game::CreateBoard
@@ -432,9 +403,14 @@ void Game:: CreateBoard(){
 }
 
 
-bool operator<(const QPointF& l, const QPointF& r )
-{
-  return  ( &l < &r );
+void Game::DisplayDiceRollNumbers(){
+    for(Tile* t: tiles_){
+        QPointF mid_point = t->GetMidPoint();
+        DiceRollNumber* drn = new DiceRollNumber(mid_point, t->get_dice_roll_number());
+        game_scene_->addItem(drn);
+
+    }
+
 }
 /**
  * @brief Game::CreateNodes
@@ -465,11 +441,8 @@ void Game::CreateNodes(){
         if(!found){
             clean_vertices.push_back(tmp_vertices.at(i));
         }
-
     }
-
     // make nodes
-
     for(QPointF p: clean_vertices){
         std::vector<Tile*> neighboring_tiles;
         for(Tile* t: tiles_){
@@ -478,7 +451,104 @@ void Game::CreateNodes(){
                     neighboring_tiles.push_back(t);
             }
         }
-        nodes_.push_back(new Node(p, neighboring_tiles));
+        Node* n = new Node(p, neighboring_tiles);
+        //connect(n,SIGNAL(NodeSelected(Node*)), this, SLOT(Build(Node*)));
+        connect(n,SIGNAL(NodeSelected(Node*)), this, SLOT(Select(Node*)));
+        connect(n, SIGNAL(secondNodeForWallSelected(Node*,Node*)), this, SLOT(WallNodesSelected(Node*,Node*)));
+
+        game_scene_->addItem(n);
+        nodes_.push_back(n);
     }
 
+}
+
+
+void Game::Select(Node* selected_node){
+    current_node_ = selected_node;
+    for(Node* n: nodes_)
+        n->set_is_selected(false);
+    current_node_->set_is_selected(true);
+    // check if player can build what they want to
+    if(current_player_->get_build_validate()){
+        // now check if the node they selected is viable for building type
+        switch(current_player_->get_current_build()){
+        case Buildings::Outpost:
+            if(current_node_->get_building() == Buildings::None)
+                emit DisableBuild(false);
+            break;
+        case Buildings::Base:
+            // Can build a Base if either no building on node, or current building is an outpost and you own it
+            if(current_node_->get_building() == Buildings::None || ( current_node_->get_building() == Buildings::Outpost && current_node_->get_player() == current_player_))
+                emit DisableBuild(false);
+            break;
+        case Buildings::Wall:
+            // don't know how I am going to do this yet..
+            break;
+        default:
+            break;
+        }
+    }
+}
+
+/**
+ * @brief Game::BuildButtonPressed is a slot called by player dashboard when
+ * player pressed the build button. Responsible for decrementing the player's hand
+ * based on what building they would like to build. Note that validation for the build
+ * has already occurred. Also increments the associated buildings_owned count on player.
+ * @param building
+ */
+void Game::BuildButtonPressed(Buildings building){
+    //decrement resources
+    switch(building){
+    case Buildings::Wall:
+        current_player_->RemoveResourceFromHand(Resource::Oil, 1);
+        current_player_->RemoveResourceFromHand(Resource::Steel, 1);
+        break;
+    case Buildings::Outpost:
+        current_player_->RemoveResourceFromHand(Resource::Oil, 1);
+        current_player_->RemoveResourceFromHand(Resource::Steel, 1);
+        current_player_->RemoveResourceFromHand(Resource::Food, 1);
+        break;
+
+    case Buildings::Base:
+        current_player_->RemoveResourceFromHand(Resource::Oil, 2);
+        current_player_->RemoveResourceFromHand(Resource::Steel, 2);
+        current_player_->RemoveResourceFromHand(Resource::Food, 2);
+        break;
+    default:
+        return;
+    }
+    current_node_->Build(building, current_player_);
+    current_player_->AddBuildingToBuildingsOwned(building);
+    current_player_->set_build_validate(false);
+    dashboard_->UpdateCounts();
+}
+
+
+void Game::WallNodesSelected(Node *from, Node *to){
+    if(current_player_->get_build_validate() && current_player_->get_current_build() == Buildings::Wall){
+        // also need to check if wall already placed by another player
+        std::cout << "Let's draw a wall now!" << std::endl;
+        emit DisableBuild(false);
+        QPen pen;
+        pen.setColor(current_player_->get_color());
+        pen.setWidth(3);
+        Wall* wall = new Wall(from, to, current_player_);
+        game_scene_->addLine(wall->get_wall(), pen);
+    }
+}
+
+// on the even of a player pressing start over we need to clear all game state
+void Game::ClearGame(){
+    players_.clear();
+    player_configs_.clear();
+    nodes_.clear();
+    tiles_.clear();
+}
+void Game::DeleteAllDisplays(){
+    delete board_;
+    delete player_scene_;
+    delete hand_scene_;
+    delete game_scene_;
+    delete build_card_scene_;
 }

@@ -13,25 +13,6 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <widget class="QDialogButtonBox" name="startGameButtonBox">
-   <property name="geometry">
-    <rect>
-     <x>150</x>
-     <y>160</y>
-     <width>81</width>
-     <height>32</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-   <property name="standardButtons">
-    <set>QDialogButtonBox::Ok</set>
-   </property>
-   <property name="centerButtons">
-    <bool>true</bool>
-   </property>
-  </widget>
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
@@ -60,42 +41,94 @@
   <widget class="QWidget" name="">
    <property name="geometry">
     <rect>
-     <x>65</x>
-     <y>98</y>
-     <width>251</width>
-     <height>21</height>
+     <x>10</x>
+     <y>100</y>
+     <width>375</width>
+     <height>111</height>
     </rect>
    </property>
-   <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QLabel" name="label_2">
-      <property name="text">
-       <string>Number of Players:</string>
-      </property>
-     </widget>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Number of Players:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="totalNumPlayerComboBox">
+        <item>
+         <property name="text">
+          <string>Select One</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>2</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>3</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>4</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+     </layout>
     </item>
     <item>
-     <widget class="QComboBox" name="numberPlayerComboBox">
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
-       <property name="text">
-        <string>Select One</string>
-       </property>
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Number of Human Players:</string>
+        </property>
+       </widget>
       </item>
       <item>
-       <property name="text">
-        <string>2</string>
-       </property>
+       <widget class="QComboBox" name="numHumanPlayerComboBox">
+        <item>
+         <property name="text">
+          <string>Select One</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>2</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>3</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>4</string>
+         </property>
+        </item>
+       </widget>
       </item>
-      <item>
-       <property name="text">
-        <string>3</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>4</string>
-       </property>
-      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QDialogButtonBox" name="startGameButtonBox">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="standardButtons">
+       <set>QDialogButtonBox::Ok</set>
+      </property>
+      <property name="centerButtons">
+       <bool>true</bool>
+      </property>
      </widget>
     </item>
    </layout>

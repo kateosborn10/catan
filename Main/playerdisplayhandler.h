@@ -23,7 +23,7 @@ public:
 
 public slots:
     void ConfigNameChanged(const QString &text);
-    void ConfigIsAiChanged(bool new_value);
+//    void ConfigIsAiChanged(bool new_value);
 
 private:
     PlayerConfig* config_;

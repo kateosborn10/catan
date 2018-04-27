@@ -7,6 +7,7 @@
 Player::Player(PlayerConfig* config)
 {
     config_ = config;
+    build_validated_ = false;
     std::cout << "Player constructed! Name is: " << config_->name << std::endl;
 
 
@@ -118,19 +119,19 @@ void Player::RemoveResourceFromHand(Resource resource, int number) {
  * @return true if Player has enough resources to build the building, false otherwise
  */
 bool Player::ValidateCanBuild(Buildings building){
-    std::cout << "The player building is " << config_->name << std::endl;
+    std::cout << "The player building is " << config_->name << std::endl; 
+    current_build_ = building;
+    build_validated_ = false;
     switch(building){
         case Buildings::Wall:{
             std::cout << "Trying to build a wall!" << std::endl;
             if(hand_->oil > 0 && hand_->steel > 0){
                 std::cout << "Success! Can build a wall!" << std::endl;
-                emit(ToggleBuild(false));
-                return true;
+                build_validated_ = true;
 
             }else{
                 std::cout << "Fail! Cannot build a wall!" << std::endl;
-                emit(ToggleBuild(true));
-                return false;
+                build_validated_ = false;
             }
             break;
         }
@@ -138,13 +139,11 @@ bool Player::ValidateCanBuild(Buildings building){
             std::cout << "Trying to build an outpost!" << std::endl;
             if(hand_->oil > 0 && hand_->steel > 0 && hand_->food > 0){
                 std::cout << "Success! Can build an outpost!" << std::endl;
-                emit(ToggleBuild(false));
-                return true;
+                build_validated_ = true;
 
             }else{
                 std::cout << "Fail! Cannot build an outpost!" << std::endl;
-                emit(ToggleBuild(true));
-                return false;
+                build_validated_ = false;
             }
             break;
         }
@@ -152,21 +151,21 @@ bool Player::ValidateCanBuild(Buildings building){
             std::cout << "Trying to build an base!" << std::endl;
             if(hand_->oil > 1 && hand_->steel > 1 && hand_->food > 1){
                 std::cout << "Success! Can build an base!" << std::endl;
-                emit(ToggleBuild(false));
-                return true;
+                build_validated_ = true;
             }else{
                 std::cout << "Fail! Cannot build an outpost!" << std::endl;
-                emit(ToggleBuild(true));
-                return false;
+                build_validated_ = false;
             }
             break;
         }
     case Buildings::None: {
-            emit(ToggleBuild(true));
-            return false;
+            break;
         }
 
     }
+    return build_validated_;
+
+
 }
 
 /**
