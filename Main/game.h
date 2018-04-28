@@ -71,6 +71,7 @@ private:
     Board* board_;
     Player* current_player_;
     Node* current_node_;
+    Node* wall_from_node_;
 //    int player_count_;
     int num_players_;
     int human_players_;

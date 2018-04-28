@@ -87,7 +87,7 @@ void Node::mousePressEvent(QGraphicsSceneMouseEvent *event){
 void Node::Build(Buildings building, Player* player){
     switch(building){
     case Buildings::Wall:
-        // don't know yet...
+        players_with_walls_.push_back(player);
         break;
     case Buildings::Outpost:
         color_ = player->get_color();

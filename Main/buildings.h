@@ -3,4 +3,7 @@
 
 enum class Buildings {Wall, Outpost, Base, None};
 
+
+
+
 #endif // BUILDINGS_H

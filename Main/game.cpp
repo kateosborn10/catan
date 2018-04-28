@@ -500,10 +500,19 @@ void Game::Select(Node* selected_node){
 void Game::BuildButtonPressed(Buildings building){
     //decrement resources
     switch(building){
-    case Buildings::Wall:
+    case Buildings::Wall:{
         current_player_->RemoveResourceFromHand(Resource::Oil, 1);
         current_player_->RemoveResourceFromHand(Resource::Steel, 1);
+        QPen pen;
+        pen.setColor(current_player_->get_color());
+        pen.setWidth(3);
+        Wall* wall = new Wall(wall_from_node_, current_node_, current_player_);
+        walls_.push_back(wall);
+        game_scene_->addLine(wall->get_wall(), pen);
+        current_node_->ClearWallFrom();
         break;
+    }
+
     case Buildings::Outpost:
         current_player_->RemoveResourceFromHand(Resource::Oil, 1);
         current_player_->RemoveResourceFromHand(Resource::Steel, 1);
@@ -516,7 +525,7 @@ void Game::BuildButtonPressed(Buildings building){
         current_player_->RemoveResourceFromHand(Resource::Food, 2);
         break;
     default:
-        return;
+        break;
     }
     current_node_->Build(building, current_player_);
     current_player_->AddBuildingToBuildingsOwned(building);
@@ -524,17 +533,43 @@ void Game::BuildButtonPressed(Buildings building){
     dashboard_->UpdateCounts();
 }
 
-
+/**
+ * @brief Game::WallNodesSelected
+ * @param from
+ * @param to
+ */
 void Game::WallNodesSelected(Node *from, Node *to){
-    if(current_player_->get_build_validate() && current_player_->get_current_build() == Buildings::Wall){
-        // also need to check if wall already placed by another player
-        std::cout << "Let's draw a wall now!" << std::endl;
-        emit DisableBuild(false);
-        QPen pen;
-        pen.setColor(current_player_->get_color());
-        pen.setWidth(3);
-        Wall* wall = new Wall(from, to, current_player_);
-        game_scene_->addLine(wall->get_wall(), pen);
+    // checks if player has enough resources && if they have selected wall in build dropdown
+    if((current_player_->get_build_validate()) && (current_player_->get_current_build() == Buildings::Wall)){
+        bool disable_val;
+        current_node_ = to;
+        wall_from_node_ = from;
+        Player* from_player = from->get_player();
+        Player* to_player = to->get_player();
+        // check to see if player can build wall
+        // case 1: player owns both nodes
+        if(from_player == current_player_ && to_player == current_player_ ){
+            disable_val = false;
+        }
+        // case 2: player owns from node OR to node
+        else if(from_player == current_player_ || to_player == current_player_){
+            disable_val = false;
+        }
+        //case 3: player owns road leading to from node
+
+
+
+        else{
+            disable_val = true;
+        }
+
+//        // case 4: no one owns either but player has road leading to from node
+//        else if()
+
+
+        emit DisableBuild(disable_val);
+    }else{
+        from->ClearWallFrom();
     }
 }
 

@@ -31,7 +31,7 @@ public:
     QPointF get_position(){ return position_; }
     bool get_is_selected() { return is_selected_; }
     void set_is_selected(bool is_selected) { is_selected_ = is_selected; }
-    void ClearWallFrom(){ wall_from = 0;_}
+    void ClearWallFrom(){ wall_from_ = 0; }
 
 
 protected:
@@ -54,6 +54,7 @@ private:
     qreal x_;
     qreal y_;
     static Node* wall_from_; // stores source Node for drawing a wall
+    std::vector<Player*> players_with_walls_;
 
 
 };
