@@ -84,22 +84,26 @@ void Node::mousePressEvent(QGraphicsSceneMouseEvent *event){
     }
 }
 
-void Node::Build(Buildings building, Player* player){
-    switch(building){
-    case Buildings::Wall:
-        players_with_walls_.push_back(player);
+void Node::Build(Building* building){
+    BuildingType building_type = building->get_building_type();
+    Player* owner = building->get_player();
+    switch(building_type){
+    case BuildingType::Wall:
+        incoming_walls_.push_back(building);
         break;
-    case Buildings::Outpost:
-        color_ = player->get_color();
-        building_ = building;
-        player_ = player;
+    case BuildingType::Outpost:
+        player_ = owner;
+        color_ = player_->get_color();
+        building_ = building_type; 
         break;
-    case Buildings::Base:
-        if(player_ != player){
-            player_ = player;
-            color_ = player->get_color();
+    case BuildingType::Base:
+        // if building a base at an empty node
+        if(player_ == NULL){
+            player_ = owner;
+            color_ = player_->get_color();
         }
-        building_ = building;
+
+        building_ = building_type;
         // need to change shape to an oval
         width_ = width_ + 2;
         break;

@@ -30,7 +30,7 @@
       <x>240</x>
       <y>510</y>
       <width>851</width>
-      <height>171</height>
+      <height>181</height>
      </rect>
     </property>
    </widget>
@@ -50,73 +50,20 @@
       <x>10</x>
       <y>510</y>
       <width>220</width>
-      <height>171</height>
+      <height>181</height>
      </rect>
     </property>
    </widget>
-   <widget class="QLabel" name="label">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>550</y>
-      <width>160</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Wall: (1) Oil (1) Steel</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_2">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>580</y>
-      <width>210</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Outpost: (1) Oil (1) Food (1) Steel</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_3">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>610</y>
-      <width>190</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Base: (2) Oil (2) Food (2) Steel</string>
-    </property>
-   </widget>
-   <widget class="QWidget" name="">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>690</y>
+      <x>280</x>
+      <y>720</y>
       <width>645</width>
       <height>34</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
-       <item>
-        <widget class="QLabel" name="numberOfPlayersLabel">
-         <property name="text">
-          <string>Number of Players</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QComboBox" name="numberOfPlayersComboBox"/>
-       </item>
-      </layout>
-     </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
@@ -148,6 +95,49 @@
         </widget>
        </item>
       </layout>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QLabel" name="playerTurnLabel">
+    <property name="geometry">
+     <rect>
+      <x>820</x>
+      <y>30</y>
+      <width>271</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Palatino</family>
+      <pointsize>24</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QWidget" name="">
+    <property name="geometry">
+     <rect>
+      <x>880</x>
+      <y>470</y>
+      <width>195</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <item>
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>You Rolled:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="diceLineEdit"/>
      </item>
     </layout>
    </widget>

@@ -10,6 +10,7 @@ public:
     Tile(QPolygonF polygon, Resource resource_type, int dice_roll_number);
     QPolygonF get_polygon(){return polygon_;}
     int get_dice_roll_number(){return dice_roll_number_;}
+    Resource get_resource_type(){ return resource_type_; }
     QPointF GetMidPoint();
 private:
     QPolygonF polygon_;

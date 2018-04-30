@@ -16,7 +16,7 @@ public:
     ScoreboardWidget();
     QGroupBox* get_group_box() { return group_box_; }
     //update the widget counts with the players counts
-    void UpdateCounts(BuildingsOwned* buildings);
+    void UpdateCounts(BuildingTypeOwned* BuildingType);
 
 private:
     QString WALL_LABEL_TEXT_ = "Walls: ";
@@ -24,7 +24,7 @@ private:
     QString BASE_LABEL_TEXT_ = "Bases: ";
     QString SCORE_LABEL_TEXT_ = "Score: ";
 
-    int calculateScore(BuildingsOwned* buildings);
+    int calculateScore(BuildingTypeOwned* BuildingType);
     QGroupBox* group_box_ = new QGroupBox();
     QLabel* wall_label_ = new QLabel("");
     QLabel* outpost_label_ = new QLabel("");

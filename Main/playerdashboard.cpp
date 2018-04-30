@@ -1,7 +1,7 @@
 #include "playerdashboard.h"
 #include <iostream>
 #include <QVBoxLayout>
-#include <Qstring>
+#include <QString>
 
 /**
  * @brief PlayerDashboard::PlayerDashboard constructor. Creates all the widgets
@@ -40,9 +40,9 @@ PlayerDashboard::PlayerDashboard(QObject *parent) : QObject(parent)
     QPixmap oil(":/images/oil");
     QPixmap food(":/images/food");
     QPixmap steel(":/images/steel");
-    oil_widget = new ResourceWidget(oil);
-    food_widget = new ResourceWidget(food);
-    steel_widget = new ResourceWidget(steel);
+    oil_widget = new ResourceWidget(oil, Resource::Oil);
+    food_widget = new ResourceWidget(food, Resource::Food);
+    steel_widget = new ResourceWidget(steel, Resource::Steel);
     layout_->addWidget(oil_widget->get_group_box());
     layout_->addWidget(food_widget->get_group_box());
     layout_->addWidget(steel_widget->get_group_box());
@@ -69,7 +69,7 @@ void PlayerDashboard::UpdateCounts() {
     oil_widget->UpdateCount(current_player_->get_hand()->oil);
     food_widget->UpdateCount(current_player_->get_hand()->food);
     steel_widget->UpdateCount(current_player_->get_hand()->steel);
-    scoreboard_box_->UpdateCounts(current_player_->get_buildings_owned());
+    scoreboard_box_->UpdateCounts(current_player_->get_BuildingType_owned());
 }
 
 /**
@@ -98,17 +98,17 @@ void PlayerDashboard::set_current_player(Player *player){
  */
 void PlayerDashboard::OnBuildOptionSelected(int index){
     build_button_->setDisabled(true);
-    current_building_ = Buildings::None;
-    Buildings building;
+    current_building_ = BuildingType::None;
+    BuildingType building;
     switch (index) {
     case 1:
-        building = Buildings::Wall;
+        building = BuildingType::Wall;
         break;
     case 2:
-        building = Buildings::Outpost;
+        building = BuildingType::Outpost;
         break;
     case 3:
-        building = Buildings::Base;
+        building = BuildingType::Base;
         break;
     default:
         std::cout << "not a valid input!" << std::endl;

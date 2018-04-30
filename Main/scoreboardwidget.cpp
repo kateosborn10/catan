@@ -21,27 +21,27 @@ ScoreboardWidget::ScoreboardWidget()
 }
 /**
  * @brief ScoreboardWidget::UpdateCounts displays the current building counts
- * @param buildings is a struct that contains the number of walls, outpost, and
+ * @param BuildingType is a struct that contains the number of walls, outpost, and
  * bases that a player owns.
  */
-void ScoreboardWidget::UpdateCounts(BuildingsOwned* buildings) {
+void ScoreboardWidget::UpdateCounts(BuildingTypeOwned* BuildingType) {
     std::cout << "Updating score" << std::endl;
-    wall_label_->setText(WALL_LABEL_TEXT_ + QString::number(buildings->walls));
-    outpost_label_->setText(OUTPOST_LABEL_TEXT_ + QString::number(buildings->outposts));
-    base_label_->setText(BASE_LABEL_TEXT_ + QString::number(buildings->bases));
-    score_label_->setText(SCORE_LABEL_TEXT_ + QString::number(calculateScore(buildings)));
+    wall_label_->setText(WALL_LABEL_TEXT_ + QString::number(BuildingType->walls));
+    outpost_label_->setText(OUTPOST_LABEL_TEXT_ + QString::number(BuildingType->outposts));
+    base_label_->setText(BASE_LABEL_TEXT_ + QString::number(BuildingType->bases));
+    score_label_->setText(SCORE_LABEL_TEXT_ + QString::number(calculateScore(BuildingType)));
 }
 
 /**
- * @brief ScoreboardWidget::calculateScore uses the counts contained in buildings
+ * @brief ScoreboardWidget::calculateScore uses the counts contained in BuildingType
  * to calculate the score of the player
- * @param buildings is a struct that contains the number of walls, outposts, and bases
+ * @param BuildingType is a struct that contains the number of walls, outposts, and bases
  * that a player owns
  * @return the current score of the player
  */
-int ScoreboardWidget::calculateScore(BuildingsOwned* buildings) {
+int ScoreboardWidget::calculateScore(BuildingTypeOwned* BuildingType) {
     int score = 0;
-    score += buildings->outposts;
-    score += (buildings->bases * 2);
+    score += BuildingType->outposts;
+    score += (BuildingType->bases * 2);
     return score;
 }

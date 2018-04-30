@@ -8,11 +8,12 @@
 #include <qwidget.h>
 #include <QtWidgets>
 #include <QString>
+#include "resource.h"
 
 class ResourceWidget
 {
 public:
-    ResourceWidget(QPixmap map);
+    ResourceWidget(QPixmap map, Resource resource);
     QGroupBox* get_group_box(){return group_box_;}
     void UpdateCount(int count);
 private:

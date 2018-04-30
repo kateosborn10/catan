@@ -12,7 +12,7 @@
 #include <QtWidgets>
 #include <player.h>
 #include "resourcewidget.h"
-#include "buildings.h"
+#include "building.h"
 #include "scoreboardwidget.h"
 
 class PlayerDashboard : public QObject
@@ -27,7 +27,7 @@ public:
     void ResetButtons(); // reset buttons on dashboard to initial sates
 
 signals:
-      void PlaceBuilding(Buildings building);
+      void PlaceBuilding(BuildingType building);
 
 public slots:
       void OnBuildOptionSelected(int index);
@@ -38,7 +38,7 @@ public slots:
       void TradeButtonPressed();
 
 private:
-    Buildings current_building_;
+    BuildingType current_building_;
     Resource trade_for_ = Resource::None;
     Resource trade_away_ = Resource::None;
     QHBoxLayout* layout_ = new QHBoxLayout();

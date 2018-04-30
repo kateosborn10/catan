@@ -8,8 +8,8 @@ Player::Player(PlayerConfig* config)
 {
     config_ = config;
     build_validated_ = false;
-    std::cout << "Player constructed! Name is: " << config_->name << std::endl;
-
+    current_build_ = BuildingType::None;
+    is_initial_turn_ = true;
 
 }
 
@@ -30,19 +30,19 @@ bool Player::get_is_ai(){
 }
 
 /**
- * @brief Player::AddBuildingToBuildingsOwned increment players buildings_owned count
+ * @brief Player::AddBuildingToBuildingTypeOwned increment players BuildingType_owned count
  * @param building the building type to be incremented
  */
-void Player::AddBuildingToBuildingsOwned(Buildings building){
+void Player::AddBuildingToBuildingTypeOwned(BuildingType building){
     switch(building){
-    case Buildings::Wall:
-        buildings_owned_->walls++;
+    case BuildingType::Wall:
+        BuildingType_owned_->walls++;
         break;
-    case Buildings::Outpost:
-        buildings_owned_->outposts++;
+    case BuildingType::Outpost:
+        BuildingType_owned_->outposts++;
         break;
-    case Buildings::Base:
-        buildings_owned_->bases++;
+    case BuildingType::Base:
+        BuildingType_owned_->bases++;
         break;
     default:
         break;
@@ -51,22 +51,22 @@ void Player::AddBuildingToBuildingsOwned(Buildings building){
 
 /**
  * @brief Player::GetBuildingOwnedCount returns the number of a type of
- * buildings a player owns
+ * BuildingType a player owns
  * @param building
- * @return number of buildings of type building
+ * @return number of BuildingType of type building
  */
-int Player::GetBuildingOwnedCount(Buildings building){
+int Player::GetBuildingOwnedCount(BuildingType building){
     switch(building){
-    case Buildings::Wall:
-        return buildings_owned_->walls;
+    case BuildingType::Wall:
+        return BuildingType_owned_->walls;
         break;
-    case Buildings::Outpost:
-        return buildings_owned_->outposts;
+    case BuildingType::Outpost:
+        return BuildingType_owned_->outposts;
         break;
-    case Buildings::Base:
-        return buildings_owned_->bases;
+    case BuildingType::Base:
+        return BuildingType_owned_->bases;
         break;
-    case Buildings::None:
+    case BuildingType::None:
         return -1;
         break;
     }
@@ -118,12 +118,12 @@ void Player::RemoveResourceFromHand(Resource resource, int number) {
  * @param building the type of building the player wants to build
  * @return true if Player has enough resources to build the building, false otherwise
  */
-bool Player::ValidateCanBuild(Buildings building){
+bool Player::ValidateCanBuild(BuildingType building){
     std::cout << "The player building is " << config_->name << std::endl; 
     current_build_ = building;
     build_validated_ = false;
     switch(building){
-        case Buildings::Wall:{
+        case BuildingType::Wall:{
             std::cout << "Trying to build a wall!" << std::endl;
             if(hand_->oil > 0 && hand_->steel > 0){
                 std::cout << "Success! Can build a wall!" << std::endl;
@@ -135,7 +135,7 @@ bool Player::ValidateCanBuild(Buildings building){
             }
             break;
         }
-        case Buildings::Outpost:{
+        case BuildingType::Outpost:{
             std::cout << "Trying to build an outpost!" << std::endl;
             if(hand_->oil > 0 && hand_->steel > 0 && hand_->food > 0){
                 std::cout << "Success! Can build an outpost!" << std::endl;
@@ -147,7 +147,7 @@ bool Player::ValidateCanBuild(Buildings building){
             }
             break;
         }
-        case Buildings::Base:{
+        case BuildingType::Base:{
             std::cout << "Trying to build an base!" << std::endl;
             if(hand_->oil > 1 && hand_->steel > 1 && hand_->food > 1){
                 std::cout << "Success! Can build an base!" << std::endl;
@@ -158,7 +158,7 @@ bool Player::ValidateCanBuild(Buildings building){
             }
             break;
         }
-    case Buildings::None: {
+    case BuildingType::None: {
             break;
         }
 

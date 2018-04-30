@@ -30,7 +30,6 @@ SOURCES += \
     tile.cpp \
     player.cpp \
     node.cpp \
-    edge.cpp \
     board.cpp \
     humanplayer.cpp \
     aiplayer.cpp \
@@ -40,7 +39,8 @@ SOURCES += \
     resourcewidget.cpp \
     scoreboardwidget.cpp \
     dicerollnumber.cpp \
-    wall.cpp
+    wall.cpp \
+    building.cpp
 
 
 HEADERS += \
@@ -49,7 +49,6 @@ HEADERS += \
     resource.h \
     player.h \
     node.h \
-    edge.h \
     board.h \
     humanplayer.h \
     aiplayer.h \
@@ -57,10 +56,12 @@ HEADERS += \
     playerdashboard.h \
     welcomescreen.h \
     resourcewidget.h \
-    buildings.h \
+    building.h \
     scoreboardwidget.h \
     dicerollnumber.h \
-    wall.h
+    wall.h \
+    building.h \
+    buildingenums.h
 
 FORMS += \
         game.ui \

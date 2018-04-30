@@ -19,9 +19,8 @@ public:
 private:
     const QVector<QPointF> calculateHexPoints(float x, float y);
     std::vector<QPolygonF> polygons_;
-    float cos_theta = 0.86602540378;
-    float sin_theta = .5;
-
+    float cos_theta_ = 0.86602540378;
+    float sin_theta_ = .5;
     int side_length_ = 55;
 };
 

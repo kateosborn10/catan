@@ -1,6 +1,6 @@
 /**
 Base class for Players
-Contains structs for a players hand and buildings
+Contains structs for a players hand and BuildingType
 Keeps score
 */
 
@@ -12,7 +12,7 @@ Keeps score
 #include "resource.h"
 #include <vector>
 #include <QObject>
-#include "buildings.h"
+#include "buildingenums.h"
 #include <QColor>
 
 struct PlayerConfig {
@@ -23,16 +23,12 @@ struct PlayerConfig {
 };
 
 struct Hand {
-    int oil = 0;
-    int steel = 0;
-    int food = 0;
+    int oil = 4;
+    int steel = 4;
+    int food = 2;
 };
 
-struct BuildingsOwned {
-    int walls = 0;
-    int outposts = 0;
-    int bases = 0;
-};
+
 
 class Player: public QObject
 {
@@ -43,19 +39,22 @@ public:
     bool get_build_validate(){ return build_validated_; }
     void set_build_validate(bool value){ build_validated_ =  value; }
     bool get_is_ai();
-    Buildings get_current_build(){ return current_build_; }
+    bool get_is_initial_turn(){ return is_initial_turn_; }
+    void set_is_initial_turn(bool value){ is_initial_turn_ = value; }
+    BuildingType get_current_build(){ return current_build_; }
     Hand* get_hand(){return hand_;}
     void set_hand(Hand* hand) {hand_ = hand;}
-    BuildingsOwned* get_buildings_owned(){ return buildings_owned_;}
-    void set_buildings_owned(BuildingsOwned* buildings){buildings_owned_ = buildings;}
-    int GetBuildingOwnedCount(Buildings building);
-    void AddBuildingToBuildingsOwned(Buildings building);
+    BuildingTypeOwned* get_BuildingType_owned(){ return BuildingType_owned_;}
+    void set_BuildingType_owned(BuildingTypeOwned* BuildingType){BuildingType_owned_ = BuildingType;}
+    int GetBuildingOwnedCount(BuildingType building);
+    void AddBuildingToBuildingTypeOwned(BuildingType building);
     void AddResourceToHand(Resource resource, int number);
     void RemoveResourceFromHand(Resource resource, int number);
-    bool ValidateCanBuild(Buildings building);
+    bool ValidateCanBuild(BuildingType building);
     bool ValidateCanTrade(Resource trade_away, Resource trade_for);
     QColor get_color() { return config_->color; }
     void set_color(QColor color) { config_->color = color;}
+
 
 public slots:
 
@@ -66,10 +65,12 @@ signals:
 private:
     int score_;
     Hand* hand_ = new Hand();
-    BuildingsOwned* buildings_owned_ = new BuildingsOwned();
+    BuildingTypeOwned* BuildingType_owned_ = new BuildingTypeOwned();
     PlayerConfig* config_;
     bool build_validated_;
-    Buildings current_build_;
+    BuildingType current_build_;
+    bool is_initial_turn_;
+
 };
 
 #endif // PLAYER_H

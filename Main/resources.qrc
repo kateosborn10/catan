@@ -1,7 +1,11 @@
 <RCC>
     <qresource prefix="/images">
-        <file alias="oil">Resources/Images/oil.jpeg</file>
-        <file alias="food">Resources/images/food.jpg</file>
-        <file alias="steel">Resources/images/steel.jpg</file>
+        <file alias="oil">Resources/images/oil.png</file>
+        <file alias="food">Resources/images/corn.jpeg</file>
+        <file alias="steel">Resources/images/steel.jpeg</file>
+        <file alias="base">Resources/images/Base.png</file>
+        <file alias="wall">Resources/images/Wall.png</file>
+        <file alias="outpost">Resources/images/Outpost.png</file>
+        <file alias="buildingcosts">Resources/images/BuildingCosts.png</file>
     </qresource>
 </RCC>

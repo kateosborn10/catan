@@ -4,20 +4,17 @@
 #include <QObject>
 #include <QGraphicsItem>
 #include "node.h"
+#include "building.h"
 
-class Wall: public QObject
+class Wall: public Building
 {
-    Q_OBJECT
 public:
-    Wall(Node* from, Node* to, Player* player);
-    void set_color(QColor color){ color_ = color;}
-    void set_player(Player* player) { player_ = player; }
-    Player* get_player(){ return player_ ; }
+    Wall(Player* owner, BuildingType type, Node* from, Node* to);
     QLineF get_wall() {return wall_; }
 private:
     Player* player_;
-    QPointF from_;
-    QPointF to_;
+    Node* from_;
+    Node* to_;
     QColor color_;
     QLineF wall_;
 };
