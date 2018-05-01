@@ -28,6 +28,7 @@ public:
 
 signals:
       void PlaceBuilding(BuildingType building);
+      void ToggleBuildWall(bool value);
 
 public slots:
       void OnBuildOptionSelected(int index);
@@ -55,6 +56,13 @@ private:
     QComboBox* trade_for_option_ = new QComboBox();
     QComboBox* trade_away_option_ = new QComboBox();
     QPushButton* trade_button_ = new QPushButton("Trade");
+    //attack widget
+    QVBoxLayout* attack_layout_ = new QVBoxLayout();
+    QGroupBox* attack_box_ = new QGroupBox();
+    QPushButton* attack_button_ = new QPushButton("Attack");
+    QLabel* attack_troops_ = new QLabel("Troops: ");
+    QLineEdit* attack_count_ = new QLineEdit("0");
+
     // reource widgets
     ResourceWidget* oil_widget;
     ResourceWidget* food_widget;

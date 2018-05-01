@@ -17,6 +17,7 @@ Creates and maintains a list of players
 #include "tile.h"
 #include "node.h"
 #include "wall.h"
+#include "move.h"
 
 namespace Ui {
 class Game;
@@ -38,13 +39,28 @@ public:
     void DisplayDiceRollNumbers();
     void DisplayTurnIndicator();
     void CreateDashboard();
-    void SetPlayerView();
+    void UpdateBuildCard();
     Player* GetNextPlayer();
     void ClearGame();
     void DeleteAllDisplays();
     int RollDice();
     void GiveInitialResources();
+    void SetInitialState();
+    void SetPlayerTurnState();
+    void SetNonPlayerTurnState();
+    void SetGameOverState();
+    void UpdatePlayersView();
+    void UpdatePlayerDashboard();
+    void SetPlayerDashboard();
+    void CreateBoard();
+    void CreatePlayerConfigs();
+    void CreateBuildCard();
     void AllocateResources(int dice_val);
+    void TakeInitialTurn();
+    void TakeHumanTurn();
+    void TakeAiTurn();
+    std::vector<Move> CalculatePossibleMoves();
+    bool IsWinner();
     void set_game_state(GameState new_state);
     GameState get_game_state() { return current_state_; }
     ~Game();
@@ -61,15 +77,8 @@ public slots:
     void BuildButtonPressed(BuildingType building);
     void Select(Node* selected_node);
     void WallNodesSelected(Node* from, Node* to);
-    void SetInitialState();
-    void SetPlayerTurnState();
-    void SetNonPlayerTurnState();
-    void SetGameOverState();
-    void UpdatePlayersView();
-    void UpdatePlayerDashboard();
-    void SetPlayerDashboard();
-    void CreateBoard();
-    void CreatePlayerConfigs();
+    void ToggleBuildWall(bool value);
+
 
 private:
     Ui::Game *ui;
@@ -98,6 +107,7 @@ private:
     std::vector<Wall*> walls_;
 
     QPalette build_card_palette;
+    bool wall_in_progress_;
 
 
 };

@@ -41,6 +41,10 @@ public:
     bool get_is_ai();
     bool get_is_initial_turn(){ return is_initial_turn_; }
     void set_is_initial_turn(bool value){ is_initial_turn_ = value; }
+    int CalculateScore();
+    int get_number_attack_troops(){ return number_of_attack_troops_; }
+    void IncrementTroopCount(int number){ number_of_attack_troops_ += number; }
+    void DecrementTroopCount(int number){ number_of_attack_troops_ -= number; }
     BuildingType get_current_build(){ return current_build_; }
     Hand* get_hand(){return hand_;}
     void set_hand(Hand* hand) {hand_ = hand;}
@@ -64,6 +68,7 @@ signals:
 
 private:
     int score_;
+    int number_of_attack_troops_;
     Hand* hand_ = new Hand();
     BuildingTypeOwned* BuildingType_owned_ = new BuildingTypeOwned();
     PlayerConfig* config_;

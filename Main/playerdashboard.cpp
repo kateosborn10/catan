@@ -12,7 +12,7 @@ PlayerDashboard::PlayerDashboard(QObject *parent) : QObject(parent)
 {
     // build widget: contains build options combo box and build button in VBox
     QStringList buildOptions;
-    buildOptions << "Select One" << "Wall" << "Outpost" << "Base";
+    buildOptions << "Build Options" << "Wall" << "Outpost" << "Base";
     select_build_option_->addItems(buildOptions);
     build_layout_->addWidget(select_build_option_);
     build_layout_->addWidget(build_button_);
@@ -34,6 +34,13 @@ PlayerDashboard::PlayerDashboard(QObject *parent) : QObject(parent)
     trade_box_->setLayout(trade_layout_);
     layout_->addWidget(trade_box_);
 
+    //attack widget
+    attack_layout_->addWidget(attack_button_);
+    attack_layout_->addWidget(attack_troops_);
+    attack_layout_->addWidget(attack_count_);
+    attack_count_->setDisabled(true);
+    attack_box_->setLayout(attack_layout_);
+    layout_->addWidget(attack_box_);
 
 
     // resource widgets: images and counts. Creates ResourceWidget objects
@@ -70,6 +77,7 @@ void PlayerDashboard::UpdateCounts() {
     food_widget->UpdateCount(current_player_->get_hand()->food);
     steel_widget->UpdateCount(current_player_->get_hand()->steel);
     scoreboard_box_->UpdateCounts(current_player_->get_BuildingType_owned());
+    attack_count_->setText(QString::number(current_player_->get_number_attack_troops()));
 }
 
 /**
@@ -103,15 +111,17 @@ void PlayerDashboard::OnBuildOptionSelected(int index){
     switch (index) {
     case 1:
         building = BuildingType::Wall;
+        emit ToggleBuildWall(true);
         break;
     case 2:
         building = BuildingType::Outpost;
+        emit ToggleBuildWall(false);
         break;
     case 3:
         building = BuildingType::Base;
+        emit ToggleBuildWall(false);
         break;
     default:
-        std::cout << "not a valid input!" << std::endl;
         return;
     }
     if(current_player_->ValidateCanBuild(building))

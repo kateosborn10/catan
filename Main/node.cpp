@@ -2,6 +2,7 @@
 #include <QPainter>
 #include <QGraphicsSceneMouseEvent>
 #include <iostream>
+#include <math.h>
 
 
 // have to forward declare the statuc fields as NULL
@@ -115,3 +116,10 @@ void Node::Build(Building* building){
 
 }
 
+float Node::CalculateDistance(Node *other){
+    float diffx = x_ - other->get_position().rx();
+    float diffy = y_ -other->get_position().ry();
+
+
+    return sqrt((diffx * diffx) + (diffy * diffy));
+}

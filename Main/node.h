@@ -31,6 +31,7 @@ public:
     void set_is_selected(bool is_selected) { is_selected_ = is_selected; }
     void ClearWallFrom(){ wall_from_ = 0; }
     std::vector<Building*> get_incoming_walls(){ return incoming_walls_; }
+    float CalculateDistance(Node* other);
 
 
 protected:

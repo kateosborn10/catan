@@ -10,6 +10,8 @@ Player::Player(PlayerConfig* config)
     build_validated_ = false;
     current_build_ = BuildingType::None;
     is_initial_turn_ = true;
+    number_of_attack_troops_ = 0;
+    score_ = 0;
 
 }
 
@@ -194,4 +196,9 @@ bool Player::ValidateCanTrade(Resource trade_away, Resource trade_for){
         break;
     }
   return return_value;
+}
+
+int Player::CalculateScore(){
+    score_ = BuildingType_owned_->outposts + (2 * BuildingType_owned_->bases);
+    return score_;
 }

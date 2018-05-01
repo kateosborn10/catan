@@ -115,10 +115,17 @@ void Game::PlayGame() {
     CreateDashboard();
     SetPlayerDashboard();
     UpdatePlayerDashboard();
-    SetPlayerView();
+    CreateBuildCard();
     CreateBoard();
     DisplayDiceRollNumbers();
     CreateNodes();
+    UpdateBuildCard();
+    ui->handGraphicsView->show();
+    ui->boardGraphicsView->show();
+    ui->diceLineEdit->show();
+    ui->label_4->show();
+    ui->playerTurnLabel->show();
+    TakeInitialTurn();
 }
 /**
  * @brief Game::AdvanceTurn is a slot that is signaled when a user presses advance
@@ -127,31 +134,79 @@ void Game::PlayGame() {
  * on if the Player is AI or Human controlled.
  */
 void Game::AdvanceTurn() {
-    if(current_player_->get_is_initial_turn()){
-        GiveInitialResources();
-        current_player_->set_is_initial_turn(false);
-    }
     current_player_ = GetNextPlayer();
-    SetPlayerView();
     DisplayTurnIndicator();
-    if(!current_player_->get_is_initial_turn()){
-        int dice_val = RollDice();
-        ui->diceLineEdit->setText(QString::number(dice_val));
-        AllocateResources(dice_val);
-    }
+
     if(current_player_->get_is_ai()){
         set_game_state(GameState::NonPlayerTurn);
-        // if player is AI then don't show their hand
-        ui->handGraphicsView->hide();
-    }
-    else{
-        ui->handGraphicsView->show();
+        TakeAiTurn();
+    }else{
         set_game_state(GameState::PlayerTurn);
-        UpdatePlayerDashboard();
+        TakeHumanTurn();
     }
 }
 
+/**
+ * @brief Game::TakeInitialTurn
+ */
+void Game::TakeInitialTurn(){
+    const QString title = "Initial Turn Instructions! ";
+    const QString content = "To begin build two outposts followed by two walls. To build an outpost select Outpost from the build options, then click on one of the white circular intersections. "
+                            "Build a wall that connects to your outpost by selecting Wall from the build options, then right-clicking on your outpost and right-clicking on an open intersection.";
+    QMessageBox* initial_turn_instructions = new QMessageBox(QMessageBox::Icon::Information, title, content, QMessageBox::StandardButton::Ok);
+    initial_turn_instructions->show();
+    GiveInitialResources();
+    current_player_->set_is_initial_turn(false);
+}
 
+/**
+ * @brief Game::TakeHumanTurn
+ */
+void Game::TakeHumanTurn(){
+    ui->handGraphicsView->show();
+    UpdateBuildCard();
+    UpdatePlayerDashboard();
+    if(current_player_->get_is_initial_turn()){
+      TakeInitialTurn();
+    }else{
+        int dice_val = RollDice();
+        ui->diceLineEdit->setText(QString::number(dice_val));
+        if(dice_val == 7){
+            QString troop_content = "Congrats, you earned a new troop! By rolling a 7 you gained a troop for your army. Once you have three troops you can attack one of your enemies.";
+            QMessageBox* troop_notification = new QMessageBox(QMessageBox::Icon::Information, "Congrats!", troop_content, QMessageBox::StandardButton::Ok);
+            troop_notification->show();
+            current_player_->IncrementTroopCount(1);
+            dashboard_->UpdateCounts();
+        }else{
+            AllocateResources(dice_val);
+            dashboard_->UpdateCounts();
+        }
+
+    }
+}
+
+/**
+ * @brief Game::TakeAiTurn
+ */
+void Game::TakeAiTurn(){
+    ui->handGraphicsView->hide();
+    UpdateBuildCard();
+    if(current_player_->get_is_initial_turn()){
+      TakeInitialTurn();
+    }else{
+        int dice_val = RollDice();
+        if(dice_val == 7){
+            current_player_->IncrementTroopCount(1);
+        }else{
+            ui->diceLineEdit->setText(QString::number(dice_val));
+            AllocateResources(dice_val);
+        }
+    }
+}
+
+std::vector<Move> Game::CalculatePossibleMoves(){
+
+}
 /**
  * @brief Game::EndGame is a slot that is signaled when a user pressed end game
  * button. Sets game state to GameOver and clears the hand graphics view
@@ -159,6 +214,11 @@ void Game::AdvanceTurn() {
 void Game::EndGame() {
     set_game_state(GameState::GameOver);
     ui->handGraphicsView->hide();
+    ui->boardGraphicsView->hide();
+    ui->buildCardGraphicsView->hide();
+    ui->diceLineEdit->hide();
+    ui->label_4->hide();
+    ui->playerTurnLabel->hide();
     delete dashboard_;
 
 }
@@ -339,7 +399,6 @@ void Game::UpdatePlayerDashboard(){
 
 
 }
-
 /**
  * @brief Game::SetPlayerDashboard connects PlaceBuilding signal on dashboard to game
  * and sets the handscene to the resourceWidgets from player dashboard.
@@ -475,7 +534,7 @@ void Game::Select(Node* selected_node){
                 emit DisableBuild(false);
             break;
         case BuildingType::Wall:
-            selected_node->ClearWallFrom();
+            current_node_->ClearWallFrom();
             break;
         default:
             break;
@@ -500,7 +559,8 @@ void Game::BuildButtonPressed(BuildingType building_type){
         pen.setColor(current_player_->get_color());
         pen.setWidth(3);
         building = new Wall(current_player_, building_type, wall_from_node_, current_node_);
-        game_scene_->addLine(building->get_wall(), pen);
+        QLineF line = building->get_wall();
+        game_scene_->addLine(line, pen);
         current_node_->ClearWallFrom();
         break;
     }
@@ -525,7 +585,20 @@ void Game::BuildButtonPressed(BuildingType building_type){
     current_player_->AddBuildingToBuildingTypeOwned(building_type);
     current_player_->set_build_validate(false);
     dashboard_->UpdateCounts();
+    if(IsWinner()){
+        QMessageBox* winner = new QMessageBox(QMessageBox::Icon::Information, "hello", "CONGRATS! YOU WIN! ", QMessageBox::StandardButton::Ok);
+        winner->show();
+        EndGame();
+    }
 }
+
+bool Game::IsWinner(){
+    if(current_player_->CalculateScore() >= 4)
+        return true;
+    else
+        return false;
+}
+
 
 /**
  * @brief Game::WallNodesSelected
@@ -622,11 +695,10 @@ void Game::DisplayTurnIndicator(){
 void Game::CreateDashboard(){
     dashboard_ = new PlayerDashboard();
     connect(this, SIGNAL(DisableBuild(bool)), dashboard_, SLOT(EnableBuild(bool)));
+    connect(dashboard_, SIGNAL(ToggleBuildWall(bool)), this SLOT(ToggleBuildWall(bool)));
 }
 
-void Game::SetPlayerView(){
-    ui->handGraphicsView->show();
-    ui->buildCardGraphicsView->show();
+void Game::CreateBuildCard(){
     QLabel* build_card_label = new QLabel();
     QPixmap map(":/images/buildingcosts");
     int width = build_card_label->width();
@@ -634,11 +706,13 @@ void Game::SetPlayerView(){
     QPixmap scaled = map.scaled(width/3,height/3, Qt::KeepAspectRatio);
     build_card_label->setPixmap(scaled);
     build_card_scene_->addWidget(build_card_label);
+}
+void Game::UpdateBuildCard(){
+//    ui->handGraphicsView->show();
+    ui->buildCardGraphicsView->show();
     build_card_palette.setColor(QPalette::Base, current_player_->get_color());
-    build_card_palette.setColor(QPalette::Text, Qt::white);
     ui->buildCardGraphicsView->setPalette(build_card_palette);
     ui->buildCardGraphicsView->update();
-
 
 }
 // on the even of a player pressing start over we need to clear all game state
