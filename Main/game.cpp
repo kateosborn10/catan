@@ -541,8 +541,15 @@ void Game::TakeAiTurn(){
     if(current_player_->get_is_initial_turn()){
         for(Move m:CalculatePossibleMoves(BuildingType::Outpost)){
             if(m.node->get_tiles().size() == 3){
-                if(current_player_->ValidateCanBuild(BuildingType::Outpost))
-                    std::cout << "Ok" << std::endl;
+                if(current_player_->ValidateCanBuild(BuildingType::Outpost)){
+                    std::cout << "AI has enough resources" << std::endl;
+                    current_node_ = m.node;
+                    if(CanBuildOnNode()){
+                        BuildButtonPressed(BuildingType::Outpost);
+                    }
+
+                }
+
             }
 
         }
@@ -794,39 +801,47 @@ void Game::Select(Node* selected_node){
     current_node_->set_is_selected(true);
     // check if player can build what they want to
     if(current_player_->get_build_validate()){
+        if(CanBuildOnNode()){
+            emit DisableBuild(false);
+        }else{
+            std::cout << "Cannot Build here!" << std::endl;
+        }
+
+
+
         // now check if the node they selected is viable for building type
 
-        switch(current_player_->get_current_build()){
-        case BuildingType::Outpost:
-            // case 1: Initial Build
-            if(current_player_->get_is_initial_turn()){
-                // can build anywhere so long as no one else has built there yet
-                if(current_node_->get_building_type() == BuildingType::None)
-                    emit DisableBuild(false);
-            }else{
-                // you need a wall coming into the node to build an outpost
-                std::vector<Building*> incoming_walls = current_node_->get_incoming_walls();
-                for(Building* wall:incoming_walls){
-                    if(wall->get_player() == current_player_){
-                        emit DisableBuild(false);
-                        break;
-                    }
-                }
-                std::cout<< "Cannot build an outpost without a wall! " << std::endl;
-            }
-            break;
+//        switch(current_player_->get_current_build()){
+//        case BuildingType::Outpost:
+//            // case 1: Initial Build
+//            if(current_player_->get_is_initial_turn()){
+//                // can build anywhere so long as no one else has built there yet
+//                if(current_node_->get_building_type() == BuildingType::None)
+//                    emit DisableBuild(false);
+//            }else{
+//                // you need a wall coming into the node to build an outpost
+//                std::vector<Building*> incoming_walls = current_node_->get_incoming_walls();
+//                for(Building* wall:incoming_walls){
+//                    if(wall->get_player() == current_player_){
+//                        emit DisableBuild(false);
+//                        break;
+//                    }
+//                }
+//                std::cout<< "Cannot build an outpost without a wall! " << std::endl;
+//            }
+//            break;
 
-        case BuildingType::Base:
-            // Can build a Base if current building is an outpost and you own it
-            if((current_node_->get_building_type() == BuildingType::Outpost && current_node_->get_player() == current_player_))
-                emit DisableBuild(false);
-            break;
-        case BuildingType::Wall:
-            std::cout << "Shouldn't be seeing this!" << std::endl;
-            break;
-        default:
-            break;
-        }
+//        case BuildingType::Base:
+//            // Can build a Base if current building is an outpost and you own it
+//            if((current_node_->get_building_type() == BuildingType::Outpost && current_node_->get_player() == current_player_))
+//                emit DisableBuild(false);
+//            break;
+//        case BuildingType::Wall:
+//            std::cout << "Shouldn't be seeing this!" << std::endl;
+//            break;
+//        default:
+//            break;
+//        }
     }
    }
 }
