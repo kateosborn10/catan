@@ -16,6 +16,7 @@ Keeps score
 #include <QColor>
 
 
+
 struct PlayerConfig {
     std::string name;
     bool is_ai = false;
@@ -62,8 +63,6 @@ public:
     void set_color(QColor color) { config_->color = color;}
     void set_attack_under_way(bool value) { attack_under_way_ = value; }
     bool get_attack_under_way() { return attack_under_way_; }
-//    virtual void MakeMove(std::vector<Move> possible_moves);
-
 public slots:
 
 

@@ -29,9 +29,10 @@ enum class GameState { Initial, PlayerTurn, NonPlayerTurn, GameOver, Trade, Buil
 struct Move
 
 {
-    Move(Node* node = 0, Node* node_from = 0, int rating = 0): node(node), node_from(node_from), rating(rating) {}
+    Move(Node* node = 0, Node* node_from = 0, BuildingType type= BuildingType::None, int rating = 0): node(node), node_from(node_from), type(type), rating(rating) {}
     Node* node;
     Node* node_from; // used for a wall
+    BuildingType type;
     int rating;
 };
 
@@ -45,7 +46,8 @@ public:
     explicit Game(QWidget *parent = 0);
     void AllocateResources(int dice_val);
     bool Attack(Node* selected_node);
-    std::vector<Move> CalculatePossibleMoves();
+    std::vector<Move> CalculatePossibleOutpostNodes();
+    std::vector<Move> CalcualtePossibleWalls();
     bool CanBuildOnNode();
     void ClearGame();
     void CreateBoard();
@@ -63,6 +65,7 @@ public:
     void GiveInitialResources();
     bool IsWinner();
     Move MakeAiMove(std::vector<Move> possible_moves);
+    Move MakeAiWallMove(std::vector<Move> possible_walls);
     int RollDice();
     void SetGameOverState();
     void SetInitialState();

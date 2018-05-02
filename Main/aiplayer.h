@@ -8,11 +8,12 @@
 
 
 
+
 class AiPlayer: public Player
 {
 public:
     AiPlayer(PlayerConfig* config);
-//    void MakeMove(std::vector<Move> possible_moves);
+
 };
 
 #endif // AIPLAYER_H

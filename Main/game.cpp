@@ -100,7 +100,7 @@ bool Game::Attack(Node* selected_node){
  * @brief Game::CalculatePossibleMoves
  * @return
  */
-std::vector<Move> Game::CalculatePossibleMoves(){
+std::vector<Move> Game::CalculatePossibleOutpostNodes(){
     std::vector<Move> possible_moves;
     for(Node* n: nodes_){
         int rating = 0;
@@ -133,7 +133,7 @@ std::vector<Move> Game::CalculatePossibleMoves(){
             }
 
             std::cout << "The rating for this move is: " << rating << std::endl;
-            Move m = {n, 0, rating};
+            Move m = {n, 0, BuildingType::Outpost, rating};
             possible_moves.push_back(m);
         }
 
@@ -141,6 +141,65 @@ std::vector<Move> Game::CalculatePossibleMoves(){
 
   return possible_moves;
 }
+
+std::vector<Move> Game::CalcualtePossibleWalls(){
+    std::vector<Move> possible_walls;
+    int rating = 1;
+    for(Node* n: nodes_){
+        for(Node* n1: nodes_){
+            ToggleBuildWall(true);
+            WallNodeSelected(n);
+            if(wall_from_node_ != 0){
+                // prioritize walls from outposts
+                if(wall_from_node_->get_player() == current_player_){
+                    rating = 2;
+                }
+                WallNodeSelected(n1);
+                if(current_node_!=0){
+                    Move m = {n1, n, BuildingType::Wall, rating};
+                    possible_walls.push_back(m);
+                }
+            }
+        }
+
+    }
+
+
+
+      return possible_walls;
+    }
+
+
+
+
+
+
+
+//    if(n->get_player() == current_player_){
+//        std::cout << "hit this statment!" << std::endl;
+//       from_node = n;
+//       rating += 2;
+//    }else{
+//        for(Player* p: n->get_players_with_incoming_walls()){
+//            if(p == current_player_)
+//                from_node = n;
+//        }
+//    }
+
+//   if(from_node != 0){
+//       for(Node* n: nodes_){
+//           // make a vector of possible to nodes by checking distance
+//           int dist = from_node->CalculateDistance(n);
+//           if(dist > 0 && dist < 60){
+//               std::cout << "pushing back a wall" << std::endl;
+//               Move m = {n, from_node, BuildingType::Wall, 0};
+//               possible_walls.push_back(m);
+//           }
+//       }
+//   }
+
+//}
+
 
 /**
  * @brief Game::CanBuildOnNode
@@ -485,6 +544,15 @@ Move Game::MakeAiMove(std::vector<Move> possible_moves){
     std::cout << best_move.rating << std::endl;
   return best_move;
 }
+
+Move Game::MakeAiWallMove(std::vector<Move> possible_walls){
+    srand(time(NULL));
+    int rand_wall = rand() % (possible_walls.size());
+    Move best_move = possible_walls[rand_wall];
+
+  return best_move;
+}
+
 int Game::RollDice(){
     srand(time(NULL));
     int die1 = rand() % 6 + 1;
@@ -630,20 +698,32 @@ void Game::TakeAiTurn(){
     ui->handGraphicsView->hide();
     UpdateBuildCard(current_player_->get_color());
     if(current_player_->get_is_initial_turn()){
-       Move m1 =  MakeAiMove(CalculatePossibleMoves());
-       if(current_player_->ValidateCanBuild(BuildingType::Outpost)){
-           current_node_ = m1.node;
-           if(CanBuildOnNode()){
-               BuildButtonPressed(BuildingType::Outpost);
-           }
-       }
-       Move m2 = MakeAiMove(CalculatePossibleMoves());
-       if(current_player_->ValidateCanBuild(BuildingType::Outpost)){
-           current_node_ = m2.node;
-           if(CanBuildOnNode()){
-               BuildButtonPressed(BuildingType::Outpost);
-           }
-       }
+        int builds = 0;
+        while(builds < 2){
+            Move m = MakeAiMove(CalculatePossibleOutpostNodes());
+            if(current_player_->ValidateCanBuild(m.type)){
+                current_node_ = m.node;
+                if(CanBuildOnNode()){
+                    BuildButtonPressed(m.type);
+                    builds++;
+                    }
+                 }
+        }
+        int walls = 0;
+        while(walls < 2){
+            Move m = MakeAiWallMove(CalcualtePossibleWalls());
+            if(current_player_->ValidateCanBuild(m.type)){
+                ToggleBuildWall(true);
+                wall_from_node_ = m.node_from;
+                current_node_ = m.node;
+                BuildButtonPressed(m.type);
+                walls++;
+            }
+
+        }
+
+
+
 
     }else{
         int dice_val = RollDice();
@@ -958,13 +1038,15 @@ void Game::WallNodeSelected(Node* selected_node){
             // Allow wall_from_node to be a node that the player owns
             if(selected_node->get_player() == current_player_){
                 valid_wall = true;
-            }else{
+            }else if(selected_node->get_player() == 0){
                 // or allow wall_from_node to be a node that a player has a wall to
                 std::vector<Player*> players_with_walls = selected_node->get_players_with_incoming_walls();
                 for(Player* p: players_with_walls){
                     if(p == current_player_)
                         valid_wall = true;
                 }
+            }else{
+                std::cout << "Can't build from a node that another player owns!" << std::endl;
             }
             if(valid_wall == true){
              // if node passes the above tests and is a valid choice the set it as wall_from_node
