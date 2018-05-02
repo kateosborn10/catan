@@ -754,6 +754,7 @@ Game::~Game(){
  * on if the Player is AI or Human controlled.
  */
 void Game::AdvanceTurn() {
+    current_node_ = 0;
     if(current_player_->get_is_initial_turn()){
         GiveInitialResources();
         current_player_->set_is_initial_turn(false);
