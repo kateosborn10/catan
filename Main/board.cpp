@@ -1,5 +1,10 @@
+
 #include "board.h"
 #include <iostream>
+
+/**
+ * @brief Board::Board constructs the polygons and adds to polygon vector in row major order
+ */
 Board::Board()
 {
     // top row: 3 hexes
@@ -33,6 +38,12 @@ Board::Board()
 
 }
 
+/**
+ * @brief Board::calculateHexPoints calculates each of the 6 points that comprise the Hexagon
+ * @param x is the x-coordinate of the top left hexagon point
+ * @param y is the y-coordinate of the top left hexagon point
+ * @return a QVector of all six hexagon points
+ */
 const QVector<QPointF> Board::calculateHexPoints(float x, float y) {
     QVector<QPointF> points;
     QPointF p1(x, y);

@@ -18,21 +18,24 @@ Creates and maintains a list of players
 //#include "node.h"
 #include "wall.h"
 
+
 namespace Ui {
 class Game;
 }
 
 enum class GameState { Initial, PlayerTurn, NonPlayerTurn, GameOver, Trade, Build };
 
-// had to put this here because of circular dependency
+// had to put this here to avoid circular dependencies
 struct Move
 
 {
-    Move(Node* node = 0, Node* node_from = 0, BuildingType building = BuildingType::None): node(node), node_from(node_from) {}
+    Move(Node* node = 0, Node* node_from = 0, int rating = 0): node(node), node_from(node_from), rating(rating) {}
     Node* node;
     Node* node_from; // used for a wall
-    BuildingType building;
+    int rating;
 };
+
+
 
 class Game : public QMainWindow
 {
@@ -42,7 +45,7 @@ public:
     explicit Game(QWidget *parent = 0);
     void AllocateResources(int dice_val);
     bool Attack(Node* selected_node);
-    std::vector<Move> CalculatePossibleMoves(BuildingType building_type);
+    std::vector<Move> CalculatePossibleMoves();
     bool CanBuildOnNode();
     void ClearGame();
     void CreateBoard();
@@ -59,6 +62,7 @@ public:
     Player* GetNextPlayer();
     void GiveInitialResources();
     bool IsWinner();
+    Move MakeAiMove(std::vector<Move> possible_moves);
     int RollDice();
     void SetGameOverState();
     void SetInitialState();
@@ -95,19 +99,20 @@ public slots:
 
 
 private:
+    Board* board_;
+    PlayerDashboard* dashboard_;
     Ui::Game *ui;
     WelcomeScreen screen_;
     GameState current_state_;
-    PlayerDashboard* dashboard_;
-    std::vector<Player*> players_;
-    std::vector<PlayerConfig*> player_configs_;
+
+
     // scenes
     QGraphicsScene* game_scene_;
     QGraphicsScene* hand_scene_;
     QGraphicsScene* player_scene_;
     QGraphicsScene* build_card_scene_;
 
-    Board* board_;
+
     Player* current_player_;
     Node* current_node_ = 0;
     Node* wall_from_node_ = 0;
@@ -115,14 +120,18 @@ private:
     int num_players_;
     int human_players_;
     int current_player_index_;
+    QPalette build_card_palette;
+    bool wall_in_progress_;
 
+    std::vector<Player*> players_;
+    std::vector<PlayerConfig*> player_configs_;
     std::vector<Tile*> tiles_;
     std::vector<Node*> nodes_;
     std::vector<Wall*> walls_;
-
-    QPalette build_card_palette;
-    bool wall_in_progress_;
     std::vector<Node*> possible_to_nodes_;
+
+
+
 
 
 };
