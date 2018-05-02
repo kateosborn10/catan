@@ -15,9 +15,8 @@ Creates and maintains a list of players
 #include "playerdashboard.h"
 #include "board.h"
 #include "tile.h"
-#include "node.h"
+//#include "node.h"
 #include "wall.h"
-#include "move.h"
 
 namespace Ui {
 class Game;
@@ -25,42 +24,55 @@ class Game;
 
 enum class GameState { Initial, PlayerTurn, NonPlayerTurn, GameOver, Trade, Build };
 
+// had to put this here because of circular dependency
+struct Move
+
+{
+    Move(Node* node = 0, Node* node_from = 0, BuildingType building = BuildingType::None): node(node), node_from(node_from) {}
+    Node* node;
+    Node* node_from; // used for a wall
+    BuildingType building;
+};
+
 class Game : public QMainWindow
 {
     Q_OBJECT
 
 public:
     explicit Game(QWidget *parent = 0);
-    void ShowWelcomeScreen();
-    void CreateScenes();
-    void SetScenes();
-    void CreatePlayers();
+    void AllocateResources(int dice_val);
+    bool Attack(Node* selected_node);
+    std::vector<Move> CalculatePossibleMoves(BuildingType building_type);
+    bool CanBuildOnNode();
+    void ClearGame();
+    void CreateBoard();
+    void CreateBuildCard();
+    void CreateDashboard();
     void CreateNodes();
+    void CreatePlayerConfigs();
+    void CreatePlayers();
+    void CreateScenes();
+    void DeleteAllDisplays();
     void DisplayDiceRollNumbers();
     void DisplayTurnIndicator();
-    void CreateDashboard();
-    void UpdateBuildCard();
+    bool DoesWallExist(Node* to, Node* from);
     Player* GetNextPlayer();
-    void ClearGame();
-    void DeleteAllDisplays();
-    int RollDice();
     void GiveInitialResources();
+    bool IsWinner();
+    int RollDice();
+    void SetGameOverState();
     void SetInitialState();
+    void SetPlayerDashboard();
     void SetPlayerTurnState();
     void SetNonPlayerTurnState();
-    void SetGameOverState();
-    void UpdatePlayersView();
-    void UpdatePlayerDashboard();
-    void SetPlayerDashboard();
-    void CreateBoard();
-    void CreatePlayerConfigs();
-    void CreateBuildCard();
-    void AllocateResources(int dice_val);
+    void SetScenes();
+    void ShowWelcomeScreen();
     void TakeInitialTurn();
     void TakeHumanTurn();
     void TakeAiTurn();
-    std::vector<Move> CalculatePossibleMoves();
-    bool IsWinner();
+    void UpdateBuildCard(QColor color);
+    void UpdatePlayerDashboard();
+    void UpdatePlayersView();
     void set_game_state(GameState new_state);
     GameState get_game_state() { return current_state_; }
     ~Game();
@@ -70,14 +82,16 @@ signals:
 
 
 public slots:
-    void PlayGame();
     void AdvanceTurn();
-    void EndGame();
-    void StartOver();
+    void AttackButtonPressed();
     void BuildButtonPressed(BuildingType building);
+    void EndGame();
+    void PlayGame();
     void Select(Node* selected_node);
-    void WallNodesSelected(Node* from, Node* to);
+    void StartOver();
     void ToggleBuildWall(bool value);
+    void WallNodeSelected(Node* selected_node);
+
 
 
 private:
@@ -95,8 +109,8 @@ private:
 
     Board* board_;
     Player* current_player_;
-    Node* current_node_;
-    Node* wall_from_node_;
+    Node* current_node_ = 0;
+    Node* wall_from_node_ = 0;
 
     int num_players_;
     int human_players_;
@@ -104,10 +118,11 @@ private:
 
     std::vector<Tile*> tiles_;
     std::vector<Node*> nodes_;
-    std::vector<Wall*> walls_;
+    std::vector<Building*> walls_;
 
     QPalette build_card_palette;
     bool wall_in_progress_;
+    std::vector<Node*> possible_to_nodes_;
 
 
 };

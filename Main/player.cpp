@@ -10,8 +10,9 @@ Player::Player(PlayerConfig* config)
     build_validated_ = false;
     current_build_ = BuildingType::None;
     is_initial_turn_ = true;
-    number_of_attack_troops_ = 0;
+    number_of_attack_troops_ = 2;
     score_ = 0;
+    attack_under_way_ = false;
 
 }
 
@@ -45,6 +46,21 @@ void Player::AddBuildingToBuildingTypeOwned(BuildingType building){
         break;
     case BuildingType::Base:
         BuildingType_owned_->bases++;
+        break;
+    default:
+        break;
+    }
+}
+void Player::RemoveBuildingToBuildingTypeOwned(BuildingType building){
+    switch(building){
+    case BuildingType::Wall:
+        BuildingType_owned_->walls--;
+        break;
+    case BuildingType::Outpost:
+        BuildingType_owned_->outposts--;
+        break;
+    case BuildingType::Base:
+        BuildingType_owned_->bases--;
         break;
     default:
         break;

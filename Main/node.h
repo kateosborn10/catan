@@ -8,7 +8,7 @@ Playable meaning intersections where outposts and bases can be placed
 #include <QObject>
 #include <QGraphicsItem>
 #include "tile.h"
-#include "player.h"
+//#include "player.h"
 #include "building.h"
 
 
@@ -24,7 +24,8 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *item, QWidget *widget) override;
     void Build(Building* building);
     Player* get_player(){return player_;}
-    BuildingType get_building(){return building_;}
+    Building* get_building(){return building_;}
+    BuildingType get_building_type(){ return building_type_; }
     std::vector<Tile*> get_tiles(){return tiles_;}
     QPointF get_position(){ return position_; }
     bool get_is_selected() { return is_selected_; }
@@ -32,6 +33,8 @@ public:
     void ClearWallFrom(){ wall_from_ = 0; }
     std::vector<Building*> get_incoming_walls(){ return incoming_walls_; }
     float CalculateDistance(Node* other);
+    void ChangeOwner(Player* new_owner);
+    void RemoveBuilding();
 
 
 protected:
@@ -39,14 +42,15 @@ protected:
 
 signals:
     void NodeSelected(Node* selected_node);
-    void secondNodeForWallSelected(Node* firstNode, Node* secondNode);
+    void WallNodeSelected(Node* selected_node);
 
 
 private:
     QPointF position_;
     std::vector<Tile*> tiles_;
     Player* player_ = 0;
-    BuildingType building_ = BuildingType::None;
+    Building* building_ = 0;
+    BuildingType building_type_ = BuildingType::None;
     QColor color_ = "white";
     bool is_selected_ = false;
     int width_ = 8;

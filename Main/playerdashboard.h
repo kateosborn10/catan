@@ -25,10 +25,12 @@ public:
     Player* get_current_player() { return current_player_; }
     void UpdateCounts();
     void ResetButtons(); // reset buttons on dashboard to initial sates
+    QPushButton* attack_button_ = new QPushButton("Attack");
 
 signals:
       void PlaceBuilding(BuildingType building);
       void ToggleBuildWall(bool value);
+      void Attack();
 
 public slots:
       void OnBuildOptionSelected(int index);
@@ -37,6 +39,8 @@ public slots:
       void OnTradeAwayOptionSelected(int index);
       void OnTradeForOptionSelected(int index);
       void TradeButtonPressed();
+      void AttackCountChanged(QString input);
+      void AttackButtonPressed();
 
 private:
     BuildingType current_building_;
@@ -59,7 +63,7 @@ private:
     //attack widget
     QVBoxLayout* attack_layout_ = new QVBoxLayout();
     QGroupBox* attack_box_ = new QGroupBox();
-    QPushButton* attack_button_ = new QPushButton("Attack");
+
     QLabel* attack_troops_ = new QLabel("Troops: ");
     QLineEdit* attack_count_ = new QLineEdit("0");
 

@@ -27,7 +27,7 @@ Node::Node(QPointF position, std::vector<Tile*> tiles)
  */
 QRectF Node::boundingRect() const
 {
-    int rect_width = width_ + .5 * width_;
+    int rect_width = width_ + .75 * width_;
     int rect_height = height_ + .5 * height_;
 
     return QRectF(x_- .5* rect_width, y_  - .5* rect_height, rect_width, rect_height );
@@ -76,12 +76,7 @@ void Node::mousePressEvent(QGraphicsSceneMouseEvent *event){
     if(event->button() == Qt::LeftButton)
         emit NodeSelected(this);
     if(event->button() == Qt::RightButton){
-        if(wall_from_ == 0)
-            wall_from_ = this;
-        else{
-            emit secondNodeForWallSelected(wall_from_, this);
-            wall_from_ = 0;
-        }
+        emit WallNodeSelected(this);
     }
 }
 
@@ -95,7 +90,8 @@ void Node::Build(Building* building){
     case BuildingType::Outpost:
         player_ = owner;
         color_ = player_->get_color();
-        building_ = building_type; 
+        building_ = building;
+        building_type_ = building_type;
         break;
     case BuildingType::Base:
         // if building a base at an empty node
@@ -104,9 +100,11 @@ void Node::Build(Building* building){
             color_ = player_->get_color();
         }
 
-        building_ = building_type;
+        building_ = building;
+        building_type_ = building_type;
         // need to change shape to an oval
         width_ = width_ + 2;
+        height_ = height_ -2;
         break;
     default:
         break;
@@ -122,4 +120,18 @@ float Node::CalculateDistance(Node *other){
 
 
     return sqrt((diffx * diffx) + (diffy * diffy));
+}
+
+void Node::ChangeOwner(Player* new_owner){
+    player_ = new_owner;
+    color_ = player_->get_color();
+    update();
+
+}
+
+void Node::RemoveBuilding(){
+    building_ = 0;
+    player_ = 0;
+    color_ = "white";
+
 }

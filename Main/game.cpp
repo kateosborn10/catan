@@ -1,8 +1,3 @@
-
-#include "game.h"
-#include "ui_game.h"
-#include "aiplayer.h"
-#include "humanplayer.h"
 #include <iostream>
 #include <QGroupBox>
 #include <QVBoxLayout>
@@ -13,7 +8,11 @@
 #include <map>
 #include "dicerollnumber.h"
 #include "playerdisplayhandler.h"
-#include "playerdashboard.h"
+//#include "playerdashboard.h"
+#include "game.h"
+#include "ui_game.h"
+#include "aiplayer.h"
+#include "humanplayer.h"
 
 
 
@@ -43,376 +42,123 @@ Game::Game(QWidget *parent) :
     set_game_state(GameState::Initial);
 }
 
+void Game::AllocateResources(int dice_val){
+    std::vector<Tile*> tiles_on_node;
+    for(Node* n: nodes_){
+        tiles_on_node = n->get_tiles();
+        for(Tile* t: tiles_on_node){
+            if(t->get_dice_roll_number() == dice_val){
+                std::cout << "Found a match! " << std::endl;
+                int increment_by = 1;
+                if(n->get_building_type() == BuildingType::Base)
+                    increment_by = 2;
+                if(n->get_player() != NULL){
+                    std::cout << " you shouldn't be seeing this statement!!!!!" << std::endl;
+                    n->get_player()->AddResourceToHand(t->get_resource_type(), increment_by);
+                }
 
-/**
- * @brief Game::~Game dtor for Game class, deletes ui instance
- */
-Game::~Game(){
-    delete ui;
-}
-
-/**
- * @brief Game::ShowWelcomeScreen show the welcome screen and wait for it to finish before executing game window
- */
-void Game::ShowWelcomeScreen(){
-    screen_.show();
-    screen_.exec();
-}
-
-/**
- * @brief Game::CreateScenes creates the scenes for all graphics views for game
- */
-void Game::CreateScenes(){
-    game_scene_ = new QGraphicsScene;
-    player_scene_ = new QGraphicsScene;
-    hand_scene_ = new QGraphicsScene;
-    build_card_scene_ = new QGraphicsScene;
-}
-
-/**
- * @brief Game::SetScenes sets the scenes of each graphics view
- */
-void Game::SetScenes(){
-    ui->boardGraphicsView->setScene(game_scene_);
-    ui->playerGraphicsView->setScene(player_scene_);
-    ui->handGraphicsView->setScene(hand_scene_);
-    ui->buildCardGraphicsView->setScene(build_card_scene_);
-    ui->handGraphicsView->setAlignment(Qt::AlignCenter|Qt::AlignTop);
-    ui->playerGraphicsView->setAlignment(Qt::AlignLeft|Qt::AlignTop);
-}
-
-/**
- * @brief Game::SetInitialState is called by set_game_state() and is
- * reponsible for disabling all user buttons except play and numbers
- * of players.
- */
-void Game::SetInitialState() {
-    ui->playGameButton->setDisabled(false);
-    ui->advanceTurnButton->setDisabled(true);
-    ui->endGameButton->setDisabled(true);
-    ui->startOverButton->setDisabled(true);
-    ui->handGraphicsView->hide();
-    ui->buildCardGraphicsView->hide();
-    CreatePlayerConfigs();
-    ui->playerGraphicsView->setDisabled(false);
-    ui->diceLineEdit->setDisabled(true);
-
-}
-
-/**
- * @brief Game::PlayGame is a slot that is signaled when a user presses
- * the play button on the ui. It calls set_game_state with PlayerTurn as the new_state,
- * calls CreatePlayers to populate players_ list, sets current_player_ field to the first
- * player, and calls method to update the player dashboard.
- */
-void Game::PlayGame() {
-    set_game_state(GameState::PlayerTurn);
-    CreatePlayers();
-    // set current player index to -1
-    current_player_index_ = -1;
-    current_player_ = GetNextPlayer();
-    DisplayTurnIndicator();
-    CreateDashboard();
-    SetPlayerDashboard();
-    UpdatePlayerDashboard();
-    CreateBuildCard();
-    CreateBoard();
-    DisplayDiceRollNumbers();
-    CreateNodes();
-    UpdateBuildCard();
-    ui->handGraphicsView->show();
-    ui->boardGraphicsView->show();
-    ui->diceLineEdit->show();
-    ui->label_4->show();
-    ui->playerTurnLabel->show();
-    TakeInitialTurn();
-}
-/**
- * @brief Game::AdvanceTurn is a slot that is signaled when a user presses advance
- * turn button. Is responsible for grabbing the next player in line and setting
- * the game state to either NonPlayerTurn or PlayerTurn depending
- * on if the Player is AI or Human controlled.
- */
-void Game::AdvanceTurn() {
-    current_player_ = GetNextPlayer();
-    DisplayTurnIndicator();
-
-    if(current_player_->get_is_ai()){
-        set_game_state(GameState::NonPlayerTurn);
-        TakeAiTurn();
-    }else{
-        set_game_state(GameState::PlayerTurn);
-        TakeHumanTurn();
-    }
-}
-
-/**
- * @brief Game::TakeInitialTurn
- */
-void Game::TakeInitialTurn(){
-    const QString title = "Initial Turn Instructions! ";
-    const QString content = "To begin build two outposts followed by two walls. To build an outpost select Outpost from the build options, then click on one of the white circular intersections. "
-                            "Build a wall that connects to your outpost by selecting Wall from the build options, then right-clicking on your outpost and right-clicking on an open intersection.";
-    QMessageBox* initial_turn_instructions = new QMessageBox(QMessageBox::Icon::Information, title, content, QMessageBox::StandardButton::Ok);
-    initial_turn_instructions->show();
-    GiveInitialResources();
-    current_player_->set_is_initial_turn(false);
-}
-
-/**
- * @brief Game::TakeHumanTurn
- */
-void Game::TakeHumanTurn(){
-    ui->handGraphicsView->show();
-    UpdateBuildCard();
-    UpdatePlayerDashboard();
-    if(current_player_->get_is_initial_turn()){
-      TakeInitialTurn();
-    }else{
-        int dice_val = RollDice();
-        ui->diceLineEdit->setText(QString::number(dice_val));
-        if(dice_val == 7){
-            QString troop_content = "Congrats, you earned a new troop! By rolling a 7 you gained a troop for your army. Once you have three troops you can attack one of your enemies.";
-            QMessageBox* troop_notification = new QMessageBox(QMessageBox::Icon::Information, "Congrats!", troop_content, QMessageBox::StandardButton::Ok);
-            troop_notification->show();
-            current_player_->IncrementTroopCount(1);
-            dashboard_->UpdateCounts();
-        }else{
-            AllocateResources(dice_val);
-            dashboard_->UpdateCounts();
+            }
         }
-
-    }
+     }
 }
 
-/**
- * @brief Game::TakeAiTurn
- */
-void Game::TakeAiTurn(){
-    ui->handGraphicsView->hide();
-    UpdateBuildCard();
-    if(current_player_->get_is_initial_turn()){
-      TakeInitialTurn();
-    }else{
-        int dice_val = RollDice();
-        if(dice_val == 7){
-            current_player_->IncrementTroopCount(1);
+//returns true if successful
+bool Game::Attack(Node* selected_node){
+    Player* enemy_player = selected_node->get_player();
+    Building* attack_building = selected_node->get_building();
+    BuildingType attack_building_type = selected_node->get_building_type();
+    if(attack_building_type == BuildingType::Wall){
+        std::cout << "Cannot attack a wall! " << std::endl;
+        return false;
+    }
+   if(enemy_player != 0 && enemy_player != current_player_){
+        if(current_player_->ValidateCanBuild(attack_building_type)){
+            selected_node->RemoveBuilding();
+            current_node_ = selected_node;
+            enemy_player->RemoveBuildingToBuildingTypeOwned(attack_building->get_building_type());
+            BuildButtonPressed(attack_building->get_building_type());
+            current_player_->DecrementTroopCount(3);
+            return true;
         }else{
-            ui->diceLineEdit->setText(QString::number(dice_val));
-            AllocateResources(dice_val);
+
+            std::cout << "Can't attack not enough resources!" << std::endl;
+            return false;
         }
+     }else{
+       std::cout << "Can't attack, can only attack another players building" << std::endl;
+       return false;
     }
 }
 
-std::vector<Move> Game::CalculatePossibleMoves(){
+// given a building type populate a list of possible moves
+std::vector<Move> Game::CalculatePossibleMoves(BuildingType building_type){
+    std::vector<Move> possible_moves;
+    switch(building_type){
+    case BuildingType::Outpost:
+        for(Node* n: nodes_){
+            if(n->get_player() == 0){
+                Move m = {n, 0, BuildingType::Outpost};
+                possible_moves.push_back(m);
+            }
 
-}
-/**
- * @brief Game::EndGame is a slot that is signaled when a user pressed end game
- * button. Sets game state to GameOver and clears the hand graphics view
- */
-void Game::EndGame() {
-    set_game_state(GameState::GameOver);
-    ui->handGraphicsView->hide();
-    ui->boardGraphicsView->hide();
-    ui->buildCardGraphicsView->hide();
-    ui->diceLineEdit->hide();
-    ui->label_4->hide();
-    ui->playerTurnLabel->hide();
-    delete dashboard_;
+        }
+         break;
 
-}
+    case BuildingType::Base:
+        for(Node* n: nodes_){
+            if(n->get_player() == current_player_ && n->get_building_type() == BuildingType::Outpost){
+                Move m = {n, 0, BuildingType::Base};
+                possible_moves.push_back(m);
+            }
 
-/**
- * @brief Game::StartOver is a slot that is signaled when a user presses start
- * over button. Resets the state of the game.
- */
-void Game::StartOver() {
-    ClearGame();
-    DeleteAllDisplays();
-    CreateScenes();
-    SetScenes();
-    screen_.ResetComboBoxes();
-    ShowWelcomeScreen();
-    set_game_state(GameState::Initial);
-}
-
-/**
- * @brief Game::SetPlayerTurnState disables all user buttons except
- * advance turn and end game buttons.
- */
-void Game::SetPlayerTurnState() {
-    ui->playGameButton->setDisabled(true);
-    ui->advanceTurnButton->setDisabled(false);
-    ui->endGameButton->setDisabled(false);
-    ui->startOverButton->setDisabled(true);
-    ui->playerGraphicsView->setDisabled(true);
-
-
-}
-
-/**
- * @brief Game::SetNonPlayerTurnState disables all user buttons except
- * advance turn and end game buttons.
- */
-void Game::SetNonPlayerTurnState() {
-    ui->playGameButton->setDisabled(true);
-    ui->advanceTurnButton->setDisabled(false);
-    ui->endGameButton->setDisabled(false);
-    ui->startOverButton->setDisabled(true);
-    ui->playerGraphicsView->setDisabled(true);
-\
-}
-
-/**
- * @brief Game::SetGameOverState disable all user buttons except start over
- * button
- */
-void Game::SetGameOverState() {
-    ui->playGameButton->setDisabled(true);
-    ui->advanceTurnButton->setDisabled(true);
-    ui->endGameButton->setDisabled(true);
-    ui->startOverButton->setDisabled(false);
-}
-
-/**
- * @brief Game::set_game_state calls the method that corresponds to the new_state
- * of the game in order to change the state. Also sets current_state_ field on game.
- * @param new_state is the desired next state of the game
- */
-void Game::set_game_state(GameState new_state) {
-    switch(new_state) {
-    case GameState::Initial:
-        SetInitialState();
-        break;
-    case GameState::PlayerTurn:
-        SetPlayerTurnState();
-        break;
-    case GameState::NonPlayerTurn:
-        SetNonPlayerTurnState();
-        break;
-    case GameState::GameOver:
-        SetGameOverState();
-        break;
+        }
+         break;
     default:
         break;
+
     }
-    current_state_ = new_state;
+  return possible_moves;
 }
 
 
-/**
- * @brief Game::CreatePlayerWidgets grabs the user input from the welcome screen
- * and uses it to create the player configs.
- */
-void Game::CreatePlayerConfigs(){
-    //get number of players from welcomescreen
-    num_players_ = screen_.get_number_players();
-    human_players_ = screen_.get_number_human_players();
-    QColor human_colors[4] = {"red", "green", "magenta", "darkCyan"};
-    QColor ai_colors[4] = {"blue", "orange", "brown"};
-    // create human players
-    for(int i = 0; i < human_players_; i++){
-        PlayerConfig* pc = new PlayerConfig();
-        pc->name = "Player " + std::to_string(i+1);
-        pc->is_ai = false;
-        pc->color = human_colors[i];
-        player_configs_.push_back(pc);
-    }
-
-    // create ai players
-    for(int i = 0; i < num_players_ - human_players_; i++){
-        PlayerConfig* pc = new PlayerConfig();
-        pc->name = "Computer " + std::to_string(i+1);
-        pc->is_ai = true;
-        pc->color = ai_colors[i];
-        player_configs_.push_back(pc);
-    }
-
-    UpdatePlayersView();
-}
-
-/**
- * @brief Game::UpdatePlayersView sets the players-view scene on the ui to show
- * A playerWidget for each player selected. A playerWidget contains a line edit
- * where user can enter a name and a checkbox where they can select AI or not.
- *
- */
-void Game::UpdatePlayersView() {
-    player_scene_->clear();
-    QGroupBox* playerWidgets = new QGroupBox;
-    QVBoxLayout* mainLayout = new QVBoxLayout;
-    //make the layout fit the graphics view
-    mainLayout->setMargin(9);
-    int next_player_number = 1;
-    for(PlayerConfig* config :player_configs_){
-        PlayerDisplayHandler* pdh = new PlayerDisplayHandler(config, next_player_number);
-        mainLayout->addWidget(pdh->get_group_box());
-        next_player_number ++;
-    }
-    playerWidgets->setLayout(mainLayout);
-    player_scene_->addWidget(playerWidgets);
- }
-
-/**
- * @brief Game::CreatePlayers iterates through the player config list and creates
- * either an AiPlayer or HumanPlayer depending on the is_ai bool in the PlayerConfig
- */
-void Game::CreatePlayers(){
-    for(PlayerConfig* pc: player_configs_){
-        Player* player;
-        if(pc->is_ai){
-            player = new AiPlayer(pc);
+bool Game::CanBuildOnNode(){
+    switch(current_player_->get_current_build()){
+    case BuildingType::Outpost:
+        // case 1: Initial Build
+        if(current_player_->get_is_initial_turn()){
+            // can build anywhere so long as no one else has built there yet
+            if(current_node_->get_building_type() == BuildingType::None)
+                return true;
+        }else{
+            // you need a wall coming into the node to build an outpost
+            std::vector<Building*> incoming_walls = current_node_->get_incoming_walls();
+            for(Building* wall:incoming_walls){
+                if(wall->get_player() == current_player_){
+                  return true;
+                }
+            }
+            std::cout<< "Cannot build an outpost without a wall! " << std::endl;
+            return false;
         }
-        else{
-            player = new HumanPlayer(pc);
-        }
-        players_.push_back(player);
+    case BuildingType::Base:
+        // Can build a Base if current building is an outpost and you own it
+        if((current_node_->get_building_type() == BuildingType::Outpost && current_node_->get_player() == current_player_))
+            return true;
+        else
+            return false;
+    default:
+        return false;
+
     }
-}
-
-/**
- * @brief Game::GetNextPlayer gets the next player in the list in a circular fashion
- * @return the player object of the next player
- */
-Player* Game::GetNextPlayer(){
-    Player* next_player;
-    if(current_player_index_ >= num_players_-1){
-        current_player_index_ = 0;
-    }
-    else{
-        current_player_index_++;
-    }
-    next_player = players_[current_player_index_];
-    return next_player;
-}
-
-/**
- * @brief Game::UpdatePlayerDashboard sets the current player
- * of the dashboard, updates the resource counts,
- * and calls reset button method on dashboard to get ready for new player.
- */
-void Game::UpdatePlayerDashboard(){
-    dashboard_->set_current_player(current_player_);
-    dashboard_->UpdateCounts();
-    dashboard_->ResetButtons();
-
 
 }
-/**
- * @brief Game::SetPlayerDashboard connects PlaceBuilding signal on dashboard to game
- * and sets the handscene to the resourceWidgets from player dashboard.
- */
-void Game::SetPlayerDashboard(){
-    connect(dashboard_, SIGNAL(PlaceBuilding(BuildingType)), this, SLOT(BuildButtonPressed(BuildingType)));
-    QGroupBox* resourceWidgets = new QGroupBox;
-    QVBoxLayout* resourceLayout = new QVBoxLayout;
-    resourceLayout->addWidget(dashboard_->get_group_box());
-    resourceLayout->setMargin(1);
-    resourceWidgets->setLayout(resourceLayout);
-    hand_scene_->addWidget(resourceWidgets);
+// on the even of a player pressing start over we need to clear all game state
+void Game::ClearGame(){
+    players_.clear();
+    player_configs_.clear();
+    nodes_.clear();
+    tiles_.clear();
 }
-
 
 /**
  * @brief Game::CreateBoard
@@ -455,14 +201,18 @@ void Game:: CreateBoard(){
     }
 }
 
+void Game::CreateBuildCard(){
+    QLabel* build_card_label = new QLabel();
+    QPixmap map(":/images/buildingcosts");
+    int width = build_card_label->width();
+    int height = build_card_label->height();
+    QPixmap scaled = map.scaled(width/3,height/3, Qt::KeepAspectRatio);
+    build_card_label->setPixmap(scaled);
+    build_card_scene_->addWidget(build_card_label);
+}
 
-void Game::DisplayDiceRollNumbers(){
-    for(Tile* t: tiles_){
-        QPointF mid_point = t->GetMidPoint();
-        DiceRollNumber* drn = new DiceRollNumber(mid_point, t->get_dice_roll_number());
-        game_scene_->addItem(drn);
-
-    }
+void Game::CreateDashboard(){
+    dashboard_ = new PlayerDashboard();
 
 }
 /**
@@ -506,7 +256,7 @@ void Game::CreateNodes(){
         }
         Node* n = new Node(p, neighboring_tiles);
         connect(n,SIGNAL(NodeSelected(Node*)), this, SLOT(Select(Node*)));
-        connect(n, SIGNAL(secondNodeForWallSelected(Node*,Node*)), this, SLOT(WallNodesSelected(Node*,Node*)));
+        connect(n, SIGNAL(WallNodeSelected(Node*)), this, SLOT(WallNodeSelected(Node*)));
 
         game_scene_->addItem(n);
         nodes_.push_back(n);
@@ -514,141 +264,115 @@ void Game::CreateNodes(){
 
 }
 
-
-void Game::Select(Node* selected_node){
-    current_node_ = selected_node;
-    for(Node* n: nodes_)
-        n->set_is_selected(false);
-    current_node_->set_is_selected(true);
-    // check if player can build what they want to
-    if(current_player_->get_build_validate()){
-        // now check if the node they selected is viable for building type
-        switch(current_player_->get_current_build()){
-        case BuildingType::Outpost:
-            if(current_node_->get_building() == BuildingType::None)
-                emit DisableBuild(false);
-            break;
-        case BuildingType::Base:
-            // Can build a Base if either no building on node, or current building is an outpost and you own it
-            if(current_node_->get_building() == BuildingType::None || ( current_node_->get_building() == BuildingType::Outpost && current_node_->get_player() == current_player_))
-                emit DisableBuild(false);
-            break;
-        case BuildingType::Wall:
-            current_node_->ClearWallFrom();
-            break;
-        default:
-            break;
-        }
+/**
+ * @brief Game::CreatePlayerWidgets grabs the user input from the welcome screen
+ * and uses it to create the player configs.
+ */
+void Game::CreatePlayerConfigs(){
+    //get number of players from welcomescreen
+    num_players_ = screen_.get_number_players();
+    human_players_ = screen_.get_number_human_players();
+    QColor human_colors[4] = {"red", "green", "magenta", "darkCyan"};
+    QColor ai_colors[4] = {"blue", "orange", "brown"};
+    // create human players
+    for(int i = 0; i < human_players_; i++){
+        PlayerConfig* pc = new PlayerConfig();
+        pc->name = "Player " + std::to_string(i+1);
+        pc->is_ai = false;
+        pc->color = human_colors[i];
+        player_configs_.push_back(pc);
     }
+
+    // create ai players
+    for(int i = 0; i < num_players_ - human_players_; i++){
+        PlayerConfig* pc = new PlayerConfig();
+        pc->name = "Computer " + std::to_string(i+1);
+        pc->is_ai = true;
+        pc->color = ai_colors[i];
+        player_configs_.push_back(pc);
+    }
+
+    UpdatePlayersView();
 }
 
 /**
- * @brief Game::BuildButtonPressed is a slot called by player dashboard when
- * player pressed the build button. Responsible for decrementing the player's hand
- * based on what building they would like to build. Note that validation for the build
- * has already occurred. Also increments the associated BuildingType_owned count on player.
- * @param building
+ * @brief Game::CreatePlayers iterates through the player config list and creates
+ * either an AiPlayer or HumanPlayer depending on the is_ai bool in the PlayerConfig
  */
-void Game::BuildButtonPressed(BuildingType building_type){
-    Building* building;
-    switch(building_type){
-    case BuildingType::Wall:{
-        current_player_->RemoveResourceFromHand(Resource::Oil, 1);
-        current_player_->RemoveResourceFromHand(Resource::Steel, 1);
-        QPen pen;
-        pen.setColor(current_player_->get_color());
-        pen.setWidth(3);
-        building = new Wall(current_player_, building_type, wall_from_node_, current_node_);
-        QLineF line = building->get_wall();
-        game_scene_->addLine(line, pen);
-        current_node_->ClearWallFrom();
-        break;
-    }
-
-    case BuildingType::Outpost:
-        current_player_->RemoveResourceFromHand(Resource::Oil, 1);
-        current_player_->RemoveResourceFromHand(Resource::Steel, 1);
-        current_player_->RemoveResourceFromHand(Resource::Food, 1);
-        building = new Building(current_player_, building_type);
-        break;
-
-    case BuildingType::Base:
-        current_player_->RemoveResourceFromHand(Resource::Oil, 2);
-        current_player_->RemoveResourceFromHand(Resource::Steel, 2);
-        current_player_->RemoveResourceFromHand(Resource::Food, 2);
-        building = new Building(current_player_, building_type);
-        break;
-    default:
-        break;
-    }
-    current_node_->Build(building);
-    current_player_->AddBuildingToBuildingTypeOwned(building_type);
-    current_player_->set_build_validate(false);
-    dashboard_->UpdateCounts();
-    if(IsWinner()){
-        QMessageBox* winner = new QMessageBox(QMessageBox::Icon::Information, "hello", "CONGRATS! YOU WIN! ", QMessageBox::StandardButton::Ok);
-        winner->show();
-        EndGame();
-    }
-}
-
-bool Game::IsWinner(){
-    if(current_player_->CalculateScore() >= 4)
-        return true;
-    else
-        return false;
-}
-
-
-/**
- * @brief Game::WallNodesSelected
- * @param from
- * @param to
- */
-void Game::WallNodesSelected(Node *from, Node *to){
-    // checks if player has enough resources && if they have selected wall in build dropdown
-    if((current_player_->get_build_validate()) && (current_player_->get_current_build() == BuildingType::Wall)){
-        bool disable_val = true;
-        current_node_ = to;
-        wall_from_node_ = from;
-        Player* from_player = from->get_player();
-        Player* to_player = to->get_player();
-        // check to see if player can build wall
-        // case 1: player owns both nodes
-        if(from_player == current_player_ && to_player == current_player_ ){
-            disable_val = false;
+void Game::CreatePlayers(){
+    for(PlayerConfig* pc: player_configs_){
+        Player* player;
+        if(pc->is_ai){
+            player = new AiPlayer(pc);
         }
-        // case 2: player owns from-node OR to-node
-        else if(from_player == current_player_ || to_player == current_player_){
-            disable_val = false;
-        }
-        //case 3: player owns road leading to from node or to the to-node
         else{
-            std::vector<Building*> walls_from = from->get_incoming_walls();
-            for(Building* wall: walls_from){
-                if(wall->get_player() == current_player_)
-                    disable_val = false;
-            }
-            std::vector<Building*> walls_to = to->get_incoming_walls();
-            for(Building* wall: walls_to){
-                if(wall->get_player() == current_player_)
-                    disable_val = false;
-            }
+            player = new HumanPlayer(pc);
         }
-
-        emit DisableBuild(disable_val);
-    }else{
-        from->ClearWallFrom();
+        players_.push_back(player);
     }
 }
 
+/**
+ * @brief Game::CreateScenes creates the scenes for all graphics views for game
+ */
+void Game::CreateScenes(){
+    game_scene_ = new QGraphicsScene;
+    player_scene_ = new QGraphicsScene;
+    hand_scene_ = new QGraphicsScene;
+    build_card_scene_ = new QGraphicsScene;
+}
 
-int Game::RollDice(){
-    srand(time(NULL));
-    int die1 = rand() % 6 + 1;
-    int die2 = rand() % 6 + 1;
-    return die1 + die2;
+void Game::DeleteAllDisplays(){
+    delete board_;
+    delete player_scene_;
+    delete hand_scene_;
+    delete game_scene_;
+    delete build_card_scene_;
+}
 
+
+void Game::DisplayDiceRollNumbers(){
+    for(Tile* t: tiles_){
+        QPointF mid_point = t->GetMidPoint();
+        DiceRollNumber* drn = new DiceRollNumber(mid_point, t->get_dice_roll_number());
+        game_scene_->addItem(drn);
+
+    }
+
+}
+
+void Game::DisplayTurnIndicator(){
+    QString current_player_turn_indicator = QString::fromStdString(current_player_->get_name())+ "'s Turn!";
+    ui->playerTurnLabel->setText(current_player_turn_indicator);
+}
+
+bool Game::DoesWallExist(Node* to, Node* from){
+    Wall* temp_wall = new Wall(current_player_, BuildingType::Wall, to, from);
+    for(Building* wall: walls_){
+        if(temp_wall->Equals((Wall*)wall)){
+            delete temp_wall;
+            return true;
+        }
+    }
+    delete temp_wall;
+    return false;
+
+}
+
+/**
+ * @brief Game::GetNextPlayer gets the next player in the list in a circular fashion
+ * @return the player object of the next player
+ */
+Player* Game::GetNextPlayer(){
+    Player* next_player;
+    if(current_player_index_ >= num_players_-1){
+        current_player_index_ = 0;
+    }
+    else{
+        current_player_index_++;
+    }
+    next_player = players_[current_player_index_];
+    return next_player;
 }
 
 
@@ -664,68 +388,526 @@ void Game::GiveInitialResources(){
     }
 }
 
-void Game::AllocateResources(int dice_val){
-    std::vector<Tile*> tiles_on_node;
-    for(Node* n: nodes_){
-        tiles_on_node = n->get_tiles();
-        for(Tile* t: tiles_on_node){
-            if(t->get_dice_roll_number() == dice_val){
-                std::cout << "Found a match! " << std::endl;
-                int increment_by = 1;
-                if(n->get_building() == BuildingType::Base)
-                    increment_by = 2;
-                if(n->get_player() != NULL){
-                    std::cout << " you shouldn't be seeing this statement!!!!!" << std::endl;
-                    n->get_player()->AddResourceToHand(t->get_resource_type(), increment_by);
-                }
 
-            }
+bool Game::IsWinner(){
+    if(current_player_->CalculateScore() >= 8)
+        return true;
+    else
+        return false;
+}
+
+
+int Game::RollDice(){
+    srand(time(NULL));
+    int die1 = rand() % 6 + 1;
+    int die2 = rand() % 6 + 1;
+    return die1 + die2;
+
+}
+/**
+ * @brief Game::SetGameOverState disable all user buttons except start over
+ * button
+ */
+void Game::SetGameOverState() {
+    ui->playGameButton->setDisabled(true);
+    ui->advanceTurnButton->setDisabled(true);
+    ui->endGameButton->setDisabled(true);
+    ui->startOverButton->setDisabled(false);
+}
+
+/**
+ * @brief Game::SetInitialState is called by set_game_state() and is
+ * reponsible for disabling all user buttons except play and numbers
+ * of players.
+ */
+void Game::SetInitialState() {
+    ui->playGameButton->setDisabled(false);
+    ui->advanceTurnButton->setDisabled(true);
+    ui->endGameButton->setDisabled(true);
+    ui->startOverButton->setDisabled(true);
+    ui->handGraphicsView->hide();
+    ui->buildCardGraphicsView->hide();
+    CreatePlayerConfigs();
+    ui->playerGraphicsView->setDisabled(false);
+    ui->diceLineEdit->setDisabled(true);
+
+}
+/**
+ * @brief Game::SetPlayerDashboard connects PlaceBuilding signal on dashboard to game
+ * and sets the handscene to the resourceWidgets from player dashboard.
+ */
+void Game::SetPlayerDashboard(){
+    QGroupBox* resourceWidgets = new QGroupBox;
+    QVBoxLayout* resourceLayout = new QVBoxLayout;
+    resourceLayout->addWidget(dashboard_->get_group_box());
+    resourceLayout->setMargin(1);
+    resourceWidgets->setLayout(resourceLayout);
+    hand_scene_->addWidget(resourceWidgets);
+    connect(dashboard_, SIGNAL(PlaceBuilding(BuildingType)), this, SLOT(BuildButtonPressed(BuildingType)));
+    connect(this, SIGNAL(DisableBuild(bool)), dashboard_, SLOT(EnableBuild(bool)));
+    connect(dashboard_, SIGNAL(ToggleBuildWall(bool)), this, SLOT(ToggleBuildWall(bool)));
+    connect(dashboard_, SIGNAL(Attack()), this, SLOT(AttackButtonPressed()));
+
+}
+/**
+ * @brief Game::SetPlayerTurnState disables all user buttons except
+ * advance turn and end game buttons.
+ */
+void Game::SetPlayerTurnState() {
+    ui->playGameButton->setDisabled(true);
+    ui->advanceTurnButton->setDisabled(false);
+    ui->endGameButton->setDisabled(false);
+    ui->startOverButton->setDisabled(true);
+    ui->playerGraphicsView->setDisabled(true);
+
+
+}
+
+/**
+ * @brief Game::SetNonPlayerTurnState disables all user buttons except
+ * advance turn and end game buttons.
+ */
+void Game::SetNonPlayerTurnState() {
+    ui->playGameButton->setDisabled(true);
+    ui->advanceTurnButton->setDisabled(false);
+    ui->endGameButton->setDisabled(false);
+    ui->startOverButton->setDisabled(true);
+    ui->playerGraphicsView->setDisabled(true);
+\
+}
+
+/**
+ * @brief Game::SetScenes sets the scenes of each graphics view
+ */
+void Game::SetScenes(){
+    ui->boardGraphicsView->setScene(game_scene_);
+    ui->playerGraphicsView->setScene(player_scene_);
+    ui->handGraphicsView->setScene(hand_scene_);
+    ui->buildCardGraphicsView->setScene(build_card_scene_);
+    ui->handGraphicsView->setAlignment(Qt::AlignCenter|Qt::AlignTop);
+    ui->playerGraphicsView->setAlignment(Qt::AlignLeft|Qt::AlignTop);
+}
+/**
+ * @brief Game::ShowWelcomeScreen show the welcome screen and wait for it to finish before executing game window
+ */
+void Game::ShowWelcomeScreen(){
+    screen_.show();
+    screen_.exec();
+}
+/**
+ * @brief Game::TakeInitialTurn
+ */
+void Game::TakeInitialTurn(){
+    if(!current_player_->get_is_ai()){
+        const QString title = "Initial Turn Instructions! ";
+        const QString content = "To begin build two outposts followed by two walls. To build an outpost select Outpost from the build options, then click on one of the white circular intersections. "
+                                "Build a wall that connects to your outpost by selecting Wall from the build options, then right-clicking on your outpost and right-clicking on an open intersection.";
+        QMessageBox* initial_turn_instructions = new QMessageBox(QMessageBox::Icon::Information, title, content, QMessageBox::StandardButton::Ok);
+        initial_turn_instructions->show();
+    }
+}
+
+/**
+ * @brief Game::TakeHumanTurn
+ */
+void Game::TakeHumanTurn(){
+    ui->handGraphicsView->show();
+    UpdateBuildCard(current_player_->get_color());
+    UpdatePlayerDashboard();
+    if(!current_player_->get_is_initial_turn()){
+        int dice_val = RollDice();
+        ui->diceLineEdit->setText(QString::number(dice_val));
+        if(dice_val == 7){
+            QString troop_content = "Congrats, you earned a new troop! By rolling a 7 you gained a troop for your army. Once you have three troops you can attack one of your enemies.";
+            QMessageBox* troop_notification = new QMessageBox(QMessageBox::Icon::Information, "Congrats!", troop_content, QMessageBox::StandardButton::Ok);
+            troop_notification->show();
+            current_player_->IncrementTroopCount(1);
+            dashboard_->UpdateCounts();
+        }else{
+            AllocateResources(dice_val);
+            dashboard_->UpdateCounts();
         }
 
     }
-
 }
 
+/**
+ * @brief Game::TakeAiTurn
+ */
+void Game::TakeAiTurn(){
+    ui->handGraphicsView->hide();
+    UpdateBuildCard(current_player_->get_color());
 
-void Game::DisplayTurnIndicator(){
-    QString current_player_turn_indicator = QString::fromStdString(current_player_->get_name())+ "'s Turn!";
-    ui->playerTurnLabel->setText(current_player_turn_indicator);
+    if(current_player_->get_is_initial_turn()){
+        for(Move m:CalculatePossibleMoves(BuildingType::Outpost)){
+            if(m.node->get_tiles().size() == 3){
+                if(current_player_->ValidateCanBuild(BuildingType::Outpost))
+                    std::cout << "Ok" << std::endl;
+            }
+
+        }
+
+    }else{
+        int dice_val = RollDice();
+        if(dice_val == 7){
+            current_player_->IncrementTroopCount(1);
+        }else{
+            ui->diceLineEdit->setText(QString::number(dice_val));
+            AllocateResources(dice_val);
+        }
+    }
 }
 
-void Game::CreateDashboard(){
-    dashboard_ = new PlayerDashboard();
-    connect(this, SIGNAL(DisableBuild(bool)), dashboard_, SLOT(EnableBuild(bool)));
-    connect(dashboard_, SIGNAL(ToggleBuildWall(bool)), this SLOT(ToggleBuildWall(bool)));
-}
-
-void Game::CreateBuildCard(){
-    QLabel* build_card_label = new QLabel();
-    QPixmap map(":/images/buildingcosts");
-    int width = build_card_label->width();
-    int height = build_card_label->height();
-    QPixmap scaled = map.scaled(width/3,height/3, Qt::KeepAspectRatio);
-    build_card_label->setPixmap(scaled);
-    build_card_scene_->addWidget(build_card_label);
-}
-void Game::UpdateBuildCard(){
+void Game::UpdateBuildCard(QColor color){
 //    ui->handGraphicsView->show();
     ui->buildCardGraphicsView->show();
-    build_card_palette.setColor(QPalette::Base, current_player_->get_color());
+    build_card_palette.setColor(QPalette::Base, color);
     ui->buildCardGraphicsView->setPalette(build_card_palette);
     ui->buildCardGraphicsView->update();
 
 }
-// on the even of a player pressing start over we need to clear all game state
-void Game::ClearGame(){
-    players_.clear();
-    player_configs_.clear();
-    nodes_.clear();
-    tiles_.clear();
+
+/**
+ * @brief Game::UpdatePlayerDashboard sets the current player
+ * of the dashboard, updates the resource counts,
+ * and calls reset button method on dashboard to get ready for new player.
+ */
+void Game::UpdatePlayerDashboard(){
+    dashboard_->set_current_player(current_player_);
+    dashboard_->UpdateCounts();
+    dashboard_->ResetButtons();
+
+
 }
-void Game::DeleteAllDisplays(){
-    delete board_;
-    delete player_scene_;
-    delete hand_scene_;
-    delete game_scene_;
-    delete build_card_scene_;
+
+/**
+ * @brief Game::UpdatePlayersView sets the players-view scene on the ui to show
+ * A playerWidget for each player selected. A playerWidget contains a line edit
+ * where user can enter a name and a checkbox where they can select AI or not.
+ *
+ */
+void Game::UpdatePlayersView() {
+    player_scene_->clear();
+    QGroupBox* playerWidgets = new QGroupBox;
+    QVBoxLayout* mainLayout = new QVBoxLayout;
+    //make the layout fit the graphics view
+    mainLayout->setMargin(9);
+    int next_player_number = 1;
+    for(PlayerConfig* config :player_configs_){
+        PlayerDisplayHandler* pdh = new PlayerDisplayHandler(config, next_player_number);
+        mainLayout->addWidget(pdh->get_group_box());
+        next_player_number ++;
+    }
+    playerWidgets->setLayout(mainLayout);
+    player_scene_->addWidget(playerWidgets);
+ }
+
+
+/**
+ * @brief Game::set_game_state calls the method that corresponds to the new_state
+ * of the game in order to change the state. Also sets current_state_ field on game.
+ * @param new_state is the desired next state of the game
+ */
+void Game::set_game_state(GameState new_state) {
+    switch(new_state) {
+    case GameState::Initial:
+        SetInitialState();
+        break;
+    case GameState::PlayerTurn:
+        SetPlayerTurnState();
+        break;
+    case GameState::NonPlayerTurn:
+        SetNonPlayerTurnState();
+        break;
+    case GameState::GameOver:
+        SetGameOverState();
+        break;
+    default:
+        break;
+    }
+    current_state_ = new_state;
+}
+
+
+/**
+ * @brief Game::~Game dtor for Game class, deletes ui instance
+ */
+Game::~Game(){
+    delete ui;
+}
+
+
+
+//////SLOTS
+
+/**
+ * @brief Game::AdvanceTurn is a slot that is signaled when a user presses advance
+ * turn button. Is responsible for grabbing the next player in line and setting
+ * the game state to either NonPlayerTurn or PlayerTurn depending
+ * on if the Player is AI or Human controlled.
+ */
+void Game::AdvanceTurn() {
+    if(current_player_->get_is_initial_turn()){
+        GiveInitialResources();
+        current_player_->set_is_initial_turn(false);
+    }
+    current_player_ = GetNextPlayer();
+    DisplayTurnIndicator();
+
+    if(current_player_->get_is_ai()){
+        set_game_state(GameState::NonPlayerTurn);
+        TakeAiTurn();
+    }else{
+        set_game_state(GameState::PlayerTurn);
+        TakeHumanTurn();
+    }
+}
+
+
+void Game::AttackButtonPressed(){
+    std::cout << "called the slot!" << std::endl;
+    QCursor newCursor = cursor();
+    // done attacking
+    if(cursor().shape() == Qt::CrossCursor){
+        newCursor.setShape(Qt::ArrowCursor);
+        current_player_->set_attack_under_way(false);
+
+    }else{
+        newCursor.setShape(Qt::CrossCursor);
+        current_player_->set_attack_under_way(true);
+    }
+
+    setCursor(newCursor);
+
+
+}
+
+/**
+ * @brief Game::BuildButtonPressed is a slot called by player dashboard when
+ * player pressed the build button. Responsible for decrementing the player's hand
+ * based on what building they would like to build. Note that validation for the build
+ * has already occurred. Also increments the associated BuildingType_owned count on player.
+ * @param building
+ */
+void Game::BuildButtonPressed(BuildingType building_type){
+    Building* building;
+    switch(building_type){
+    case BuildingType::Wall:{
+        std::cout << "building wall " << std::endl;
+        current_player_->RemoveResourceFromHand(Resource::Oil, 1);
+        current_player_->RemoveResourceFromHand(Resource::Steel, 1);
+        QPen pen;
+        pen.setColor(current_player_->get_color());
+        pen.setWidth(3);
+        building = new Wall(current_player_, building_type, wall_from_node_, current_node_);
+        walls_.push_back(building);
+        QLineF line = building->get_wall();
+        game_scene_->addLine(line, pen);
+        break;
+    }
+
+    case BuildingType::Outpost:
+        current_player_->RemoveResourceFromHand(Resource::Oil, 1);
+        current_player_->RemoveResourceFromHand(Resource::Steel, 1);
+        current_player_->RemoveResourceFromHand(Resource::Food, 1);
+        building = new Building(current_player_, building_type);
+        break;
+
+    case BuildingType::Base:
+        current_player_->RemoveResourceFromHand(Resource::Oil, 2);
+        current_player_->RemoveResourceFromHand(Resource::Steel, 2);
+        current_player_->RemoveResourceFromHand(Resource::Food, 2);
+        building = new Building(current_player_, building_type);
+        // if building a base then we must remove the outpost there
+        current_player_->RemoveBuildingToBuildingTypeOwned(BuildingType::Outpost);
+        break;
+    default:
+        break;
+    }
+    current_node_->Build(building);
+    current_player_->AddBuildingToBuildingTypeOwned(building_type);
+    current_player_->set_build_validate(false);
+    dashboard_->UpdateCounts();
+    if(IsWinner()){
+        QMessageBox* winner = new QMessageBox(QMessageBox::Icon::Information, "hello", "CONGRATS! YOU WIN! ", QMessageBox::StandardButton::Ok);
+        winner->show();
+        EndGame();
+    }
+}
+
+/**
+ * @brief Game::EndGame is a slot that is signaled when a user pressed end game
+ * button. Sets game state to GameOver and clears the hand graphics view
+ */
+void Game::EndGame() {
+    set_game_state(GameState::GameOver);
+//    ui->handGraphicsView->hide();
+//    ui->boardGraphicsView->hide();
+//    ui->buildCardGraphicsView->hide();
+//    ui->diceLineEdit->hide();
+//    ui->label_4->hide();
+//    ui->playerTurnLabel->hide();
+
+    delete dashboard_;
+
+}
+
+
+/**
+ * @brief Game::PlayGame is a slot that is signaled when a user presses
+ * the play button on the ui. It calls set_game_state with PlayerTurn as the new_state,
+ * calls CreatePlayers to populate players_ list, sets current_player_ field to the first
+ * player, and calls method to update the player dashboard.
+ */
+void Game::PlayGame() {
+    set_game_state(GameState::PlayerTurn);
+    CreatePlayers();
+    // set current player index to -1
+    current_player_index_ = -1;
+    current_player_ = GetNextPlayer();
+    DisplayTurnIndicator();
+    CreateDashboard();
+    SetPlayerDashboard();
+    UpdatePlayerDashboard();
+    CreateBuildCard();
+    CreateBoard();
+    DisplayDiceRollNumbers();
+    CreateNodes();
+    UpdateBuildCard(current_player_->get_color());
+    ui->handGraphicsView->show();
+    ui->boardGraphicsView->show();
+    ui->diceLineEdit->show();
+    ui->label_4->show();
+    ui->playerTurnLabel->show();
+    TakeHumanTurn();
+}
+
+void Game::Select(Node* selected_node){
+    if(current_player_->get_attack_under_way()){
+        if(Attack(selected_node)){
+            std::cout << "Success! You Attacked! " << std::endl;
+        }
+    }else{
+    current_node_ = selected_node;
+    for(Node* n: nodes_)
+        n->set_is_selected(false);
+    current_node_->set_is_selected(true);
+    // check if player can build what they want to
+    if(current_player_->get_build_validate()){
+        // now check if the node they selected is viable for building type
+
+        switch(current_player_->get_current_build()){
+        case BuildingType::Outpost:
+            // case 1: Initial Build
+            if(current_player_->get_is_initial_turn()){
+                // can build anywhere so long as no one else has built there yet
+                if(current_node_->get_building_type() == BuildingType::None)
+                    emit DisableBuild(false);
+            }else{
+                // you need a wall coming into the node to build an outpost
+                std::vector<Building*> incoming_walls = current_node_->get_incoming_walls();
+                for(Building* wall:incoming_walls){
+                    if(wall->get_player() == current_player_){
+                        emit DisableBuild(false);
+                        break;
+                    }
+                }
+                std::cout<< "Cannot build an outpost without a wall! " << std::endl;
+            }
+            break;
+
+        case BuildingType::Base:
+            // Can build a Base if current building is an outpost and you own it
+            if((current_node_->get_building_type() == BuildingType::Outpost && current_node_->get_player() == current_player_))
+                emit DisableBuild(false);
+            break;
+        case BuildingType::Wall:
+            std::cout << "Shouldn't be seeing this!" << std::endl;
+            break;
+        default:
+            break;
+        }
+    }
+   }
+}
+
+/**
+ * @brief Game::StartOver is a slot that is signaled when a user presses start
+ * over button. Resets the state of the game.
+ */
+void Game::StartOver() {
+    ClearGame();
+    DeleteAllDisplays();
+    ui->diceLineEdit->hide();
+    ui->label_4->hide();
+    ui->playerTurnLabel->hide();
+    UpdateBuildCard("white");
+    CreateScenes();
+    SetScenes();
+    screen_.ResetComboBoxes();
+    ShowWelcomeScreen();
+    set_game_state(GameState::Initial);
+}
+
+
+void Game::ToggleBuildWall(bool value){
+    std::cout << "Toggling wall in progress bool!" <<  std::endl;
+    current_node_ = 0;
+    wall_from_node_ = 0;
+    wall_in_progress_ = value;
+    possible_to_nodes_.clear();
+
+}
+
+void Game::WallNodeSelected(Node* selected_node){
+    bool valid_wall = false;
+    if(wall_in_progress_){
+        if(wall_from_node_ == 0){
+            if(selected_node->get_player() == current_player_){
+                valid_wall = true;
+            }else{
+                std::vector<Building*> walls_into = selected_node->get_incoming_walls();
+                for(Building* wall: walls_into){
+                    if(wall->get_player() == current_player_)
+                        valid_wall = true;
+                }
+            }
+            if(valid_wall == true){
+                std::cout << "Valid choice for from node! " << std::endl;
+                wall_from_node_ = selected_node;
+                for(Node* n: nodes_){
+                    int dist = wall_from_node_->CalculateDistance(n);
+                    if(dist > 0 && dist < 60){
+                        std::cout << "adding a node to possible_to_nodes" << std::endl;
+                        possible_to_nodes_.push_back(n);
+                    }
+                }
+
+            }else{
+                std::cout << "Not a valid choice to build a wall from, must own the node or have a wall to that node" << std::endl;
+            }
+
+        }else if(current_node_ == 0){
+                for(Node* n: possible_to_nodes_){
+                    if(selected_node == n){
+                        current_node_ = selected_node;
+                    }
+                }
+                if(current_node_ == 0){
+                    std::cout << "Too far away to build a wall!" << std::endl;
+                }
+            }
+
+
+        if(current_node_ != 0 && wall_from_node_ != 0){
+            if(!DoesWallExist(current_node_, wall_from_node_))
+                emit DisableBuild(false);
+            else {
+                std::cout << "Wall already exists! " << std::endl;
+                current_node_ = 0;
+                wall_from_node_ = 0;
+             }
+
+        }
+    }
 }

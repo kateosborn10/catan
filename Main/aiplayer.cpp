@@ -12,3 +12,4 @@ AiPlayer::AiPlayer(PlayerConfig* config):
     std::cout << "AIPlayer constructed!" << std::endl;
 
 }
+

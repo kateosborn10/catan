@@ -49,15 +49,18 @@ public:
     Hand* get_hand(){return hand_;}
     void set_hand(Hand* hand) {hand_ = hand;}
     BuildingTypeOwned* get_BuildingType_owned(){ return BuildingType_owned_;}
-    void set_BuildingType_owned(BuildingTypeOwned* BuildingType){BuildingType_owned_ = BuildingType;}
+//    void set_BuildingType_owned(BuildingTypeOwned* BuildingType){BuildingType_owned_ = BuildingType;}
     int GetBuildingOwnedCount(BuildingType building);
     void AddBuildingToBuildingTypeOwned(BuildingType building);
+    void RemoveBuildingToBuildingTypeOwned(BuildingType building);
     void AddResourceToHand(Resource resource, int number);
     void RemoveResourceFromHand(Resource resource, int number);
     bool ValidateCanBuild(BuildingType building);
     bool ValidateCanTrade(Resource trade_away, Resource trade_for);
     QColor get_color() { return config_->color; }
     void set_color(QColor color) { config_->color = color;}
+    void set_attack_under_way(bool value) { attack_under_way_ = value; }
+    bool get_attack_under_way() { return attack_under_way_; }
 
 
 public slots:
@@ -75,6 +78,7 @@ private:
     bool build_validated_;
     BuildingType current_build_;
     bool is_initial_turn_;
+    bool attack_under_way_;
 
 };
 

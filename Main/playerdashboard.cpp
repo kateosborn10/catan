@@ -39,6 +39,8 @@ PlayerDashboard::PlayerDashboard(QObject *parent) : QObject(parent)
     attack_layout_->addWidget(attack_troops_);
     attack_layout_->addWidget(attack_count_);
     attack_count_->setDisabled(true);
+    attack_button_->setDisabled(true);
+    attack_button_->setCheckable(true);
     attack_box_->setLayout(attack_layout_);
     layout_->addWidget(attack_box_);
 
@@ -66,6 +68,10 @@ PlayerDashboard::PlayerDashboard(QObject *parent) : QObject(parent)
 
     // when user hits trade button execute TradeButtonPressed method.
     connect(trade_button_, SIGNAL(pressed()),this, SLOT(TradeButtonPressed()));
+
+    connect(attack_count_, SIGNAL(textChanged(QString)), this, SLOT(AttackCountChanged(QString)));
+    connect(attack_button_, SIGNAL(pressed()), this, SLOT(AttackButtonPressed()));
+
 
 }
 
@@ -224,4 +230,16 @@ void PlayerDashboard::TradeButtonPressed() {
     ResetButtons();
     UpdateCounts();
 
+}
+
+void PlayerDashboard::AttackCountChanged(QString input){
+    if(input.toInt() >= 3){
+        attack_button_->setDisabled(false);
+    }else{
+        attack_button_->setDisabled(true);
+    }
+}
+
+void PlayerDashboard::AttackButtonPressed(){
+    emit Attack();
 }

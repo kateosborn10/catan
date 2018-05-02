@@ -61,8 +61,7 @@ HEADERS += \
     dicerollnumber.h \
     wall.h \
     building.h \
-    buildingenums.h \
-    move.h
+    buildingenums.h
 
 FORMS += \
         game.ui \
