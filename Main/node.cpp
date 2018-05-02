@@ -7,7 +7,7 @@
 
 // have to forward declare the statuc fields as NULL
 
-Node* Node::wall_from_ = NULL;
+
 /**
  * @brief Node::Node
  * @param position
@@ -61,12 +61,6 @@ void Node::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
 
     painter->setBrush(b);
 }
-/**
- * @brief Node::rePaint
- */
-void Node::rePaint(){
-    update();
-}
 
 /**
  * @brief Node::mousePressEvent
@@ -80,28 +74,24 @@ void Node::mousePressEvent(QGraphicsSceneMouseEvent *event){
     }
 }
 
-void Node::Build(Building* building){
-    BuildingType building_type = building->get_building_type();
-    Player* owner = building->get_player();
-    switch(building_type){
+void Node::Build(BuildingType building, Player* current_player){
+    switch(building){
     case BuildingType::Wall:
-        incoming_walls_.push_back(building);
+        players_with_incoming_walls_.push_back(current_player);
         break;
     case BuildingType::Outpost:
-        player_ = owner;
+        player_ = current_player;
         color_ = player_->get_color();
-        building_ = building;
-        building_type_ = building_type;
+        building_type_ = building;
         break;
     case BuildingType::Base:
         // if building a base at an empty node
         if(player_ == NULL){
-            player_ = owner;
+            player_ = current_player;
             color_ = player_->get_color();
         }
 
-        building_ = building;
-        building_type_ = building_type;
+        building_type_ = building;
         // need to change shape to an oval
         width_ = width_ + 2;
         height_ = height_ -2;
@@ -130,7 +120,7 @@ void Node::ChangeOwner(Player* new_owner){
 }
 
 void Node::RemoveBuilding(){
-    building_ = 0;
+    building_type_ = BuildingType::None;
     player_ = 0;
     color_ = "white";
 

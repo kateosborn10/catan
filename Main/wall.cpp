@@ -2,8 +2,8 @@
 #include <QtWidgets>
 #include <iostream>
 
-Wall::Wall(Player* owner, BuildingType type, Node* from, Node* to):
-    Building(owner, type)
+Wall::Wall(BuildingType type, Node* from, Node* to):
+    Building(type)
 {
     from_ = from;
     to_ = to;

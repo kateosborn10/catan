@@ -65,7 +65,6 @@ void Game::AllocateResources(int dice_val){
 //returns true if successful
 bool Game::Attack(Node* selected_node){
     Player* enemy_player = selected_node->get_player();
-    Building* attack_building = selected_node->get_building();
     BuildingType attack_building_type = selected_node->get_building_type();
     if(attack_building_type == BuildingType::Wall){
         std::cout << "Cannot attack a wall! " << std::endl;
@@ -75,8 +74,8 @@ bool Game::Attack(Node* selected_node){
         if(current_player_->ValidateCanBuild(attack_building_type)){
             selected_node->RemoveBuilding();
             current_node_ = selected_node;
-            enemy_player->RemoveBuildingToBuildingTypeOwned(attack_building->get_building_type());
-            BuildButtonPressed(attack_building->get_building_type());
+            enemy_player->RemoveBuildingToBuildingTypeOwned(attack_building_type);
+            BuildButtonPressed(attack_building_type);
             current_player_->DecrementTroopCount(3);
             return true;
         }else{
@@ -131,9 +130,9 @@ bool Game::CanBuildOnNode(){
                 return true;
         }else{
             // you need a wall coming into the node to build an outpost
-            std::vector<Building*> incoming_walls = current_node_->get_incoming_walls();
-            for(Building* wall:incoming_walls){
-                if(wall->get_player() == current_player_){
+            std::vector<Player*> players_with_incoming_walls = current_node_->get_players_with_incoming_walls();
+            for(Player* p:players_with_incoming_walls){
+                if(p == current_player_){
                   return true;
                 }
             }
@@ -347,9 +346,9 @@ void Game::DisplayTurnIndicator(){
 }
 
 bool Game::DoesWallExist(Node* to, Node* from){
-    Wall* temp_wall = new Wall(current_player_, BuildingType::Wall, to, from);
-    for(Building* wall: walls_){
-        if(temp_wall->Equals((Wall*)wall)){
+    Wall* temp_wall = new Wall(BuildingType::Wall, to, from);
+    for(Wall* wall: walls_){
+        if(temp_wall->Equals(wall)){
             delete temp_wall;
             return true;
         }
@@ -697,7 +696,6 @@ void Game::AttackButtonPressed(){
  * @param building
  */
 void Game::BuildButtonPressed(BuildingType building_type){
-    Building* building;
     switch(building_type){
     case BuildingType::Wall:{
         std::cout << "building wall " << std::endl;
@@ -706,9 +704,9 @@ void Game::BuildButtonPressed(BuildingType building_type){
         QPen pen;
         pen.setColor(current_player_->get_color());
         pen.setWidth(3);
-        building = new Wall(current_player_, building_type, wall_from_node_, current_node_);
-        walls_.push_back(building);
-        QLineF line = building->get_wall();
+        Wall* w = new Wall(building_type, wall_from_node_, current_node_);
+        walls_.push_back(w);
+        QLineF line = w->get_wall();
         game_scene_->addLine(line, pen);
         break;
     }
@@ -717,21 +715,19 @@ void Game::BuildButtonPressed(BuildingType building_type){
         current_player_->RemoveResourceFromHand(Resource::Oil, 1);
         current_player_->RemoveResourceFromHand(Resource::Steel, 1);
         current_player_->RemoveResourceFromHand(Resource::Food, 1);
-        building = new Building(current_player_, building_type);
         break;
 
     case BuildingType::Base:
         current_player_->RemoveResourceFromHand(Resource::Oil, 2);
         current_player_->RemoveResourceFromHand(Resource::Steel, 2);
         current_player_->RemoveResourceFromHand(Resource::Food, 2);
-        building = new Building(current_player_, building_type);
         // if building a base then we must remove the outpost there
         current_player_->RemoveBuildingToBuildingTypeOwned(BuildingType::Outpost);
         break;
     default:
         break;
     }
-    current_node_->Build(building);
+    current_node_->Build(building_type, current_player_);
     current_player_->AddBuildingToBuildingTypeOwned(building_type);
     current_player_->set_build_validate(false);
     dashboard_->UpdateCounts();
@@ -881,9 +877,9 @@ void Game::WallNodeSelected(Node* selected_node){
             if(selected_node->get_player() == current_player_){
                 valid_wall = true;
             }else{
-                std::vector<Building*> walls_into = selected_node->get_incoming_walls();
-                for(Building* wall: walls_into){
-                    if(wall->get_player() == current_player_)
+                std::vector<Player*> players_with_walls = selected_node->get_players_with_incoming_walls();
+                for(Player* p: players_with_walls){
+                    if(p == current_player_)
                         valid_wall = true;
                 }
             }

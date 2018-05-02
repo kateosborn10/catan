@@ -8,8 +8,7 @@ Playable meaning intersections where outposts and bases can be placed
 #include <QObject>
 #include <QGraphicsItem>
 #include "tile.h"
-//#include "player.h"
-#include "building.h"
+#include "player.h"
 
 
 
@@ -22,16 +21,14 @@ public:
     QPainterPath shape() const override;
     void rePaint();
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *item, QWidget *widget) override;
-    void Build(Building* building);
+    void Build(BuildingType building, Player* current_player);
     Player* get_player(){return player_;}
-    Building* get_building(){return building_;}
     BuildingType get_building_type(){ return building_type_; }
     std::vector<Tile*> get_tiles(){return tiles_;}
     QPointF get_position(){ return position_; }
     bool get_is_selected() { return is_selected_; }
     void set_is_selected(bool is_selected) { is_selected_ = is_selected; }
-    void ClearWallFrom(){ wall_from_ = 0; }
-    std::vector<Building*> get_incoming_walls(){ return incoming_walls_; }
+    std::vector<Player*> get_players_with_incoming_walls(){ return players_with_incoming_walls_; }
     float CalculateDistance(Node* other);
     void ChangeOwner(Player* new_owner);
     void RemoveBuilding();
@@ -49,7 +46,6 @@ private:
     QPointF position_;
     std::vector<Tile*> tiles_;
     Player* player_ = 0;
-    Building* building_ = 0;
     BuildingType building_type_ = BuildingType::None;
     QColor color_ = "white";
     bool is_selected_ = false;
@@ -57,8 +53,8 @@ private:
     int height_ = 8;
     qreal x_;
     qreal y_;
-    static Node* wall_from_; // stores source Node for drawing a wall
-    std::vector<Building*> incoming_walls_;
+//    static Node* wall_from_; // stores source Node for drawing a wall
+    std::vector<Player*> players_with_incoming_walls_;
 
 
 };

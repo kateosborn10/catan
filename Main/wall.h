@@ -4,12 +4,12 @@
 #include <QObject>
 #include <QGraphicsItem>
 #include "node.h"
-//#include "building.h"
+#include "building.h"
 
 class Wall: public Building
 {
 public:
-    Wall(Player* owner, BuildingType type, Node* from, Node* to);
+    Wall(BuildingType type, Node* from, Node* to);
     QLineF get_wall() {return wall_; }
     bool Equals(Wall* wall);
 

@@ -118,7 +118,7 @@ private:
 
     std::vector<Tile*> tiles_;
     std::vector<Node*> nodes_;
-    std::vector<Building*> walls_;
+    std::vector<Wall*> walls_;
 
     QPalette build_card_palette;
     bool wall_in_progress_;
