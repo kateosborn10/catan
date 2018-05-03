@@ -137,41 +137,31 @@ void Player::RemoveResourceFromHand(Resource resource, int number) {
  * @return true if Player has enough resources to build the building, false otherwise
  */
 bool Player::ValidateCanBuild(BuildingType building){
-//    std::cout << "The player building is " << config_->name << std::endl;
     current_build_ = building;
     build_validated_ = false;
     switch(building){
         case BuildingType::Wall:{
-//            std::cout << "Trying to build a wall!" << std::endl;
             if(hand_->oil > 0 && hand_->steel > 0){
-//                std::cout << "Success! Can build a wall!" << std::endl;
                 build_validated_ = true;
 
             }else{
-//                std::cout << "Fail! Cannot build a wall!" << std::endl;
                 build_validated_ = false;
             }
             break;
         }
         case BuildingType::Outpost:{
-//            std::cout << "Trying to build an outpost!" << std::endl;
             if(hand_->oil > 0 && hand_->steel > 0 && hand_->food > 0){
-//                std::cout << "Success! Can build an outpost!" << std::endl;
                 build_validated_ = true;
 
             }else{
-//                std::cout << "Fail! Cannot build an outpost!" << std::endl;
                 build_validated_ = false;
             }
             break;
         }
         case BuildingType::Base:{
-//            std::cout << "Trying to build an base!" << std::endl;
             if(hand_->oil > 1 && hand_->steel > 1 && hand_->food > 1){
-//                std::cout << "Success! Can build an base!" << std::endl;
                 build_validated_ = true;
             }else{
-//                std::cout << "Fail! Cannot build an outpost!" << std::endl;
                 build_validated_ = false;
             }
             break;
@@ -217,4 +207,36 @@ bool Player::ValidateCanTrade(Resource trade_away, Resource trade_for){
 int Player::CalculateScore(){
     score_ = BuildingType_owned_->outposts + (2 * BuildingType_owned_->bases);
     return score_;
+}
+
+Resource Player::RichestResource(){
+    if(hand_->oil >= hand_->food){
+        if(hand_->oil >= hand_->steel ){
+            return Resource::Oil;
+        }else{
+            return Resource::Steel;
+        }
+    }else if(hand_->food >= hand_->steel){
+        return Resource::Food;
+    }else{
+        return Resource::Steel;
+    }
+
+
+}
+
+Resource Player::PoorestResource(){
+    if(hand_->oil <= hand_->food){
+        if(hand_->oil <= hand_->steel ){
+            return Resource::Oil;
+        }else{
+            return Resource::Steel;
+        }
+    }else if(hand_->food <= hand_->steel){
+        return Resource::Food;
+    }else{
+        return Resource::Steel;
+    }
+
+
 }

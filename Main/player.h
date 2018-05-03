@@ -64,6 +64,8 @@ public:
     void set_color(QColor color) { config_->color = color;}
     void set_attack_under_way(bool value) { attack_under_way_ = value; }
     bool get_attack_under_way() { return attack_under_way_; }
+    Resource RichestResource();
+    Resource PoorestResource();
 public slots:
 
 

@@ -25,6 +25,7 @@ public:
     Player* get_current_player() { return current_player_; }
     void UpdateCounts();
     void ResetButtons(); // reset buttons on dashboard to initial sates
+    void DisableAttackButton();
     QPushButton* attack_button_ = new QPushButton("Attack");
 
 signals:

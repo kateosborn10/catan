@@ -80,7 +80,6 @@ void Node::Build(BuildingType building, Player* current_player){
         players_with_incoming_walls_.push_back(current_player);
         break;
     case BuildingType::Outpost:
-        std::cout << current_player->get_name() << " built and outpost!" << std::endl;
         player_ = current_player;
         color_ = player_->get_color();
         building_type_ = building;

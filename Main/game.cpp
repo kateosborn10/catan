@@ -14,7 +14,18 @@
 #include "aiplayer.h"
 #include "humanplayer.h"
 
-
+QString QStringifyResource(Resource resource){
+    switch(resource){
+    case Resource::Oil:
+        return "Oil";
+    case Resource::Food:
+        return "Corn";
+    case Resource::Steel:
+        return "Steel";
+    default:
+        return "";
+    }
+}
 
 /**
  * @brief Game::Game constructor for the Game class. Responsible
@@ -104,7 +115,6 @@ bool Game::Attack(Node* selected_node){
     Player* enemy_player = selected_node->get_player();
     BuildingType attack_building_type = selected_node->get_building_type();
     if(attack_building_type == BuildingType::Wall){
-        std::cout << "Cannot attack a wall! " << std::endl;
         return false;
     }
    if(enemy_player != 0 && enemy_player != current_player_){
@@ -116,63 +126,29 @@ bool Game::Attack(Node* selected_node){
             BuildButtonPressed(attack_building_type);
             current_player_->DecrementTroopCount(3);
             dashboard_->UpdateCounts();
+            QString attack_message = QString::fromStdString(current_player_->get_name()) + " attacked " +
+                    QString::fromStdString(enemy_player->get_name()) + "!";
+            PopUpQMessageBox(attack_message);
             return true;
         }else{
-            std::cout << "Can't attack not enough resources!" << std::endl;
             return false;
         }
      }else{
-       std::cout << "Can't attack, can only attack another players building" << std::endl;
        return false;
     }
 }
 
-
-//std::vector<Move> Game::CalculatePossibleBaseNodes(){
-//    std::vector<Move> possible_bases;
-//    for(Node* n: nodes_){
-//        if(n->get_player() == current_player_){
-//            Move m = {n, 0, BuildingType::Base, 0};
-//            possible_bases.push_back(n);
-//        }
-//    }
-
-//}
 /**
  * @brief Game::CalculatePossibleMoves
  * @return
  */
 std::vector<Move> Game::CalculatePossibleMoves(BuildingType type){
     std::vector<Move> possible_moves;
-//    if(type == BuildingType::Outpost && current_player_->get_is_initial_turn()){
-//        for(Node* n: nodes_){
-//            if(n->get_player() == 0){
-//                Move m = {n, 0, BuildingType::Outpost, AssignNodeRating(n)};
-//                possible_moves.push_back(m);
-//            }
-//        }
-//    }
-
-
-
-//    else if(type == BuildingType::Base){
-//        for(Node* n: nodes_){
-//            if(n->get_player() == current_player_ && n->get_building_type() == BuildingType::Outpost){
-//                Move m = {n, 0, type, AssignNodeRating(n)};
-//                possible_moves.push_back(m);
-//            }
-//        }
-
-//    }else{
-//        std::cout<< "Can only call this method with Base or Outpost as input!!" << std::endl;
-//    }
-
     current_player_->set_current_build(type);
     int i = 1;
     for(Node* n: nodes_){
         current_node_ = n;
         if(CanBuildOnNode()){
-            std::cout << "adding move #" << i << std::endl;
             Move m = {n, 0, type, AssignNodeRating(n)};
             possible_moves.push_back(m);
             i++;
@@ -235,7 +211,6 @@ bool Game::CanBuildOnNode(){
                     }
                  }
             }else{
-                std::cout<< "Cannot build an outpost without a wall! " << std::endl;
                 return false;
             }
 
@@ -554,7 +529,6 @@ Move Game::MakeAiMove(std::vector<Move> possible_moves){
             best_move = m;
         }
     }
-    std::cout << best_move.rating << std::endl;
   return best_move;
 }
 
@@ -566,6 +540,14 @@ Move Game::MakeAiWallMove(std::vector<Move> possible_walls){
   return best_move;
 }
 
+/**
+ * @brief Game::TakeInitialTurn displays a QMessageBox to user informing them of the instructions
+ */
+void Game::PopUpQMessageBox(QString message){
+    QMessageBox* initial_turn_instructions = new QMessageBox(QMessageBox::Icon::Information, "dialog", message, QMessageBox::StandardButton::Ok);
+    initial_turn_instructions->show();
+
+}
 int Game::RollDice(){
     srand(time(NULL));
     int die1 = rand() % 6 + 1;
@@ -663,18 +645,7 @@ void Game::ShowWelcomeScreen(){
     screen_.show();
     screen_.exec();
 }
-/**
- * @brief Game::TakeInitialTurn displays a QMessageBox to user informing them of the instructions
- */
-void Game::TakeInitialTurn(){
-    if(!current_player_->get_is_ai()){
-        const QString title = "Initial Turn Instructions! ";
-        const QString content = "To begin build two outposts followed by two walls. To build an outpost select Outpost from the build options, then click on one of the white circular intersections. "
-                                "Build a wall that connects to your outpost by selecting Wall from the build options, then right-clicking on your outpost and right-clicking on an open intersection.";
-        QMessageBox* initial_turn_instructions = new QMessageBox(QMessageBox::Icon::Information, title, content, QMessageBox::StandardButton::Ok);
-        initial_turn_instructions->show();
-    }
-}
+
 
 /**
  * @brief Game::TakeHumanTurn holds logic for a player turn. Responsible for updating
@@ -738,13 +709,29 @@ void Game::TakeAiTurn(){
     }else{
         int dice_val = RollDice();
         if(dice_val == 7){
+            std::cout << "AI rolled a 7!" << std::endl;
             current_player_->IncrementTroopCount(1);
         }else{
             ui->diceLineEdit->setText(QString::number(dice_val));
             AllocateResources(dice_val);
         }
 
-        // strategy
+        QString hand = "AI has: " + QString::number(current_player_->get_hand()->oil) + " Oil, " + QString::number(current_player_->get_hand()->food) + " Corn, and "
+                + QString::number(current_player_->get_hand()->steel) +" steel";
+        PopUpQMessageBox(hand);
+
+        if(current_player_->get_number_attack_troops() > 2){
+            std::cout << "Ai has enough troops to attack!" << std::endl;
+            for(Node* n: nodes_){
+               if(Attack(n)){
+                   std::cout << "Attack from Ai successful!" << std::endl;
+                   break;
+               }else{
+                   std::cout << "Can't attack this node!" << std::endl;
+               }
+
+            }
+        }
 
         while(current_player_->ValidateCanBuild(BuildingType::Base)){
             std::vector<Move> possible_bases = CalculatePossibleMoves(BuildingType::Base);
@@ -752,6 +739,7 @@ void Game::TakeAiTurn(){
                 Move next_move = MakeAiMove(possible_bases);
                 current_node_ = next_move.node;
                 BuildButtonPressed(BuildingType::Base);
+                std::cout << "Ai is building a base!" << std::endl;
             }else{
                 break;
             }
@@ -763,6 +751,7 @@ void Game::TakeAiTurn(){
                 Move next_move = MakeAiMove(possible_outposts);
                 current_node_ = next_move.node;
                 BuildButtonPressed(BuildingType::Outpost);
+                 std::cout << "Ai is building a Outpost!" << std::endl;
             }else{
                 break;
             }
@@ -776,49 +765,46 @@ void Game::TakeAiTurn(){
                 wall_from_node_ = next_move.node_from;
                 current_node_ = next_move.node;
                 BuildButtonPressed(next_move.type);
+                std::cout << "Ai is building a Wall!" << std::endl;
+
             }else{
                 break;
             }
         }
         // if can't build anything try and trade
+        QString hand2 = "AI has: " + QString::number(current_player_->get_hand()->oil) + " Oil, " + QString::number(current_player_->get_hand()->food) + " Corn, and "
+                + QString::number(current_player_->get_hand()->steel) +" steel";
+        PopUpQMessageBox(hand2);
+        Resource richest = current_player_->RichestResource();
+        Resource poorest = current_player_->PoorestResource();
 
+        QString trade_message = "The richest resource is: " + QStringifyResource(richest) + " and the poorest is: " + QStringifyResource(poorest);
+        PopUpQMessageBox(trade_message);
+        bool trade_suggested = false;
+        switch(richest){
+        case Resource::Oil:
+            if(current_player_->get_hand()->oil > 4)
+                trade_suggested = true;
+            break;
+        case Resource::Food:
+            if(current_player_->get_hand()->food > 4)
+                trade_suggested = true;
+            break;
+        case Resource::Steel:
+            if(current_player_->get_hand()->steel > 4)
+                trade_suggested = true;
+            break;
+        default:
+            break;
+        }
+        if(trade_suggested){
+            current_player_->RemoveResourceFromHand(richest, 3);
+            current_player_->AddResourceToHand(poorest, 1);
+            QString message = QString::fromStdString(current_player_->get_name()) + " Traded a " + QStringifyResource(richest) + " for a " + QStringifyResource(poorest);
+            PopUpQMessageBox(message);
+            dashboard_->UpdateCounts();
 
-
-
-        // (1) base
-//        while(current_player_->ValidateCanBuild(BuildingType::Base) ){
-//           std::cout << "Have enough resources to build a base!" << std::endl;
-//           if(CalculatePossibleMoves(BuildingType::Base).size() > 0){
-//                // try and build a base
-//                Move m = MakeAiMove(CalculatePossibleMoves(BuildingType::Base));
-//                current_node_ = m.node;
-//                if(CanBuildOnNode()){
-//                    BuildButtonPressed(BuildingType::Base);
-//                    std::cout << "Ai built a base!" << std::endl;
-//                    }
-//           }else{
-//               break;
-//           }
-//         }
-//    }
-//    //(2) Outpost
-
-//        while(current_player_->ValidateCanBuild(BuildingType::Outpost)){
-//            std::cout << "Have enough resources to build an outpost!" << std::endl;
-//            if(CalculatePossibleMoves(BuildingType::Outpost).size() > 0){
-//                 // try and build a base
-//                 Move m = MakeAiMove(CalculatePossibleMoves(BuildingType::Outpost));
-//                 current_node_ = m.node;
-//                 if(CanBuildOnNode()){
-//                     BuildButtonPressed(BuildingType::Outpost);
-//                     std::cout << "Ai built an outpost!" << std::endl;
-//                     }
-//            }else{
-//                break;
-//            }
-
-//         }
-
+        }
 
 
 //    AdvanceTurn();
@@ -947,6 +933,8 @@ void Game::AttackButtonPressed(){
     if(cursor().shape() == Qt::CrossCursor){
         newCursor.setShape(Qt::ArrowCursor);
         current_player_->set_attack_under_way(false);
+        if(current_player_->get_number_attack_troops() < 3)
+            dashboard_->DisableAttackButton();
 
     }else{
         newCursor.setShape(Qt::CrossCursor);
@@ -967,9 +955,9 @@ void Game::AttackButtonPressed(){
  * @param building
  */
 void Game::BuildButtonPressed(BuildingType building_type){
+    std::cout << "In build button pressed!" << std::endl;
     switch(building_type){
     case BuildingType::Wall:{
-        std::cout << "building wall " << std::endl;
         current_player_->RemoveResourceFromHand(Resource::Oil, 1);
         current_player_->RemoveResourceFromHand(Resource::Steel, 1);
         QPen pen;
@@ -1005,8 +993,8 @@ void Game::BuildButtonPressed(BuildingType building_type){
 
     // check if this building makes the current player the winner. If so, call end game method.
     if(IsWinner()){
-        QMessageBox* winner = new QMessageBox(QMessageBox::Icon::Information, "hello", "CONGRATS! YOU WIN! ", QMessageBox::StandardButton::Ok);
-        winner->show();
+        QString winner_message = " CONGRATS, " + QString::fromStdString(current_player_->get_name()) + ", YOU WIN";
+        PopUpQMessageBox(winner_message);
         EndGame();
     }
 }
@@ -1058,7 +1046,7 @@ void Game::PlayGame() {
 void Game::Select(Node* selected_node){
     if(current_player_->get_attack_under_way()){
         if(Attack(selected_node)){
-            std::cout << "Success! You Attacked! " << std::endl;
+            std::cout << "Success! Human Attacked! " << std::endl;
         }
     }else{
         current_node_ = selected_node;
@@ -1069,10 +1057,8 @@ void Game::Select(Node* selected_node){
         if(current_player_->get_build_validate()){
             if(CanBuildOnNode()){
                 emit DisableBuild(false);
-            }else{
-                std::cout << "Cannot Build here!" << std::endl;
             }
-       }
+        }
     }
 }
 
@@ -1131,8 +1117,9 @@ void Game::WallNodeSelected(Node* selected_node){
                         valid_wall = true;
                 }
             }else{
-                std::cout << "Can't build from a node that another player owns!" << std::endl;
+
             }
+
             if(valid_wall == true){
              // if node passes the above tests and is a valid choice the set it as wall_from_node
                 wall_from_node_ = selected_node;
@@ -1145,7 +1132,7 @@ void Game::WallNodeSelected(Node* selected_node){
                 }
 
             }else{
-//                std::cout << "Not a valid choice to build a wall from, must own the node or have a wall to that node" << std::endl;
+
             }
          // case where wall_from_node already set but current_node is unset
         }else if(current_node_ == 0){
@@ -1155,9 +1142,9 @@ void Game::WallNodeSelected(Node* selected_node){
                         current_node_ = selected_node;
                     }
                 }
-                if(current_node_ == 0){
-//                    std::cout << "Too far away to build a wall!" << std::endl;
-                }
+//                if(current_node_ == 0){
+
+//                }
             }
 
         // case where both current and wall_from nodes are set and valid
@@ -1166,7 +1153,6 @@ void Game::WallNodeSelected(Node* selected_node){
             if(!DoesWallExist(current_node_, wall_from_node_))
                 emit DisableBuild(false);
             else {
-                std::cout << "Wall already exists! " << std::endl;
                 current_node_ = 0;
                 wall_from_node_ = 0;
              }

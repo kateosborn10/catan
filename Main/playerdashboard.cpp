@@ -22,9 +22,9 @@ PlayerDashboard::PlayerDashboard(QObject *parent) : QObject(parent)
 
     // trade widget: contains trade button and two combo boxes for trade away and trade for
     QStringList tradeForOptions;
-    tradeForOptions << "Trade For" << "Oil" << "Food" << "Steel";
+    tradeForOptions << "Trade For" << "Oil" << "Corn" << "Steel";
     QStringList tradeAwayOptions;
-    tradeAwayOptions << "Trade Away" << "3 Oil" << "3 Food" << "3 Steel";
+    tradeAwayOptions << "Trade Away" << "3 Oil" << "3 Corn" << "3 Steel";
     trade_for_option_->addItems(tradeForOptions);
     trade_away_option_->addItems(tradeAwayOptions);
     trade_layout_->addWidget(trade_for_option_);
@@ -162,7 +162,6 @@ void PlayerDashboard::ResetButtons(){
  * method to set the intial states of the buttons.
  */
 void PlayerDashboard::BuildButtonPressed() {
-    std::cout << "Build Button Pressed!" << std::endl;
     emit PlaceBuilding(current_building_);
     ResetButtons();
 }
@@ -184,7 +183,6 @@ void PlayerDashboard::OnTradeAwayOptionSelected(int index){
         trade_away_ = Resource::Steel;
         break;
     default:
-        std::cout << "not a valid input!" << std::endl;
         break;
     }
     if(current_player_->ValidateCanTrade(trade_away_, trade_for_))
@@ -210,7 +208,6 @@ void PlayerDashboard::OnTradeForOptionSelected(int index){
         trade_for_ = Resource::Steel;
         break;
     default:
-        std::cout << "not a valid input!" << std::endl;
         break;
     }
     if(current_player_->ValidateCanTrade(trade_away_, trade_for_))
@@ -224,7 +221,6 @@ void PlayerDashboard::OnTradeForOptionSelected(int index){
  * @brief PlayerDashboard::TradeButtonPressed
  */
 void PlayerDashboard::TradeButtonPressed() {
-    std::cout << "Trade Button Pressed!" << std::endl;
     current_player_->AddResourceToHand(trade_for_, 1);
     current_player_->RemoveResourceFromHand(trade_away_, 3);
     ResetButtons();
@@ -235,11 +231,15 @@ void PlayerDashboard::TradeButtonPressed() {
 void PlayerDashboard::AttackCountChanged(QString input){
     if(input.toInt() >= 3){
         attack_button_->setDisabled(false);
-    }else{
-        attack_button_->setDisabled(true);
     }
 }
 
 void PlayerDashboard::AttackButtonPressed(){
     emit Attack();
 }
+
+void PlayerDashboard::DisableAttackButton(){
+    attack_button_->setDisabled(true);
+}
+
+

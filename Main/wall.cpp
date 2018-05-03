@@ -12,7 +12,6 @@ Wall::Wall(BuildingType type, Node* from, Node* to):
 }
 
 bool Wall::Equals(Wall* wall){
-//    std::cout << "Friend operator being called!" << std::endl;
     if(from_ == wall->from_ && to_ == wall->to_)
         return true;
     else if(from_ == wall->to_ && to_ == wall->from_)

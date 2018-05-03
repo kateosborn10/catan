@@ -25,7 +25,6 @@ ScoreboardWidget::ScoreboardWidget()
  * bases that a player owns.
  */
 void ScoreboardWidget::UpdateCounts(BuildingTypeOwned* BuildingType) {
-//    std::cout << "Updating score" << std::endl;
     wall_label_->setText(WALL_LABEL_TEXT_ + QString::number(BuildingType->walls));
     outpost_label_->setText(OUTPOST_LABEL_TEXT_ + QString::number(BuildingType->outposts));
     base_label_->setText(BASE_LABEL_TEXT_ + QString::number(BuildingType->bases));

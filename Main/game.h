@@ -68,6 +68,7 @@ public:
     bool IsWinner();
     Move MakeAiMove(std::vector<Move> possible_moves);
     Move MakeAiWallMove(std::vector<Move> possible_walls);
+    void PopUpQMessageBox(QString message);
     int RollDice();
     void SetGameOverState();
     void SetInitialState();
@@ -76,7 +77,6 @@ public:
     void SetNonPlayerTurnState();
     void SetScenes();
     void ShowWelcomeScreen();
-    void TakeInitialTurn();
     void TakeHumanTurn();
     void TakeAiTurn();
     void UpdateBuildCard(QColor color);
