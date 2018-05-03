@@ -48,6 +48,7 @@ public:
     void IncrementTroopCount(int number){ number_of_attack_troops_ += number; }
     void DecrementTroopCount(int number){ number_of_attack_troops_ -= number; }
     BuildingType get_current_build(){ return current_build_; }
+    void set_current_build(BuildingType type){ current_build_ = type; }
     Hand* get_hand(){return hand_;}
     void set_hand(Hand* hand) {hand_ = hand;}
     BuildingTypeOwned* get_BuildingType_owned(){ return BuildingType_owned_;}

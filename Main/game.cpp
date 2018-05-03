@@ -61,9 +61,39 @@ void Game::AllocateResources(int dice_val){
             }
         }
     }
+    dashboard_->UpdateCounts();
 }
 
-
+int Game::AssignNodeRating(Node* node){
+    int rating = 0;
+    std::vector<Tile*> neighbor_tiles = node->get_tiles();
+    if(neighbor_tiles.size() == 3){
+        rating += 2;
+        Resource first_resource = neighbor_tiles.at(0)->get_resource_type();
+        if(first_resource != neighbor_tiles.at(1)->get_resource_type() && first_resource != neighbor_tiles.at(2)->get_resource_type() && neighbor_tiles.at(1)->get_resource_type() != neighbor_tiles.at(2)->get_resource_type()){
+            rating +=3;
+        }else if(first_resource != neighbor_tiles.at(1)->get_resource_type() || first_resource != neighbor_tiles.at(2)->get_resource_type()){
+            rating +=1;
+        }
+        int sum = neighbor_tiles.at(0)->get_dice_roll_number() + neighbor_tiles.at(1)->get_dice_roll_number() + neighbor_tiles.at(1)->get_dice_roll_number() ;
+        if(sum == 15 || sum == 17 || sum == 19){
+            rating += 2;
+        }else if(sum == 18 || sum == 20){
+            rating += 1;
+        }
+    }else if(neighbor_tiles.size() == 2){
+        rating += 1;
+        Resource first_resource = neighbor_tiles.at(0)->get_resource_type();
+        if(first_resource != neighbor_tiles.at(1)->get_resource_type()){
+            rating +=1;
+        }
+        int sum = neighbor_tiles.at(0)->get_dice_roll_number() + neighbor_tiles.at(1)->get_dice_roll_number();
+        if(sum == 9|| sum == 7 || sum == 13){
+            rating += 1;
+        }
+    }
+   return rating;
+}
 /**
  * @brief Game::Attack carries out the logic to see if an attack is allowed at the given node.
  * Attacks are not allowed for walls.
@@ -85,6 +115,7 @@ bool Game::Attack(Node* selected_node){
             enemy_player->RemoveBuildingToBuildingTypeOwned(attack_building_type);
             BuildButtonPressed(attack_building_type);
             current_player_->DecrementTroopCount(3);
+            dashboard_->UpdateCounts();
             return true;
         }else{
             std::cout << "Can't attack not enough resources!" << std::endl;
@@ -96,53 +127,65 @@ bool Game::Attack(Node* selected_node){
     }
 }
 
+
+//std::vector<Move> Game::CalculatePossibleBaseNodes(){
+//    std::vector<Move> possible_bases;
+//    for(Node* n: nodes_){
+//        if(n->get_player() == current_player_){
+//            Move m = {n, 0, BuildingType::Base, 0};
+//            possible_bases.push_back(n);
+//        }
+//    }
+
+//}
 /**
  * @brief Game::CalculatePossibleMoves
  * @return
  */
-std::vector<Move> Game::CalculatePossibleOutpostNodes(){
+std::vector<Move> Game::CalculatePossibleMoves(BuildingType type){
     std::vector<Move> possible_moves;
+//    if(type == BuildingType::Outpost && current_player_->get_is_initial_turn()){
+//        for(Node* n: nodes_){
+//            if(n->get_player() == 0){
+//                Move m = {n, 0, BuildingType::Outpost, AssignNodeRating(n)};
+//                possible_moves.push_back(m);
+//            }
+//        }
+//    }
+
+
+
+//    else if(type == BuildingType::Base){
+//        for(Node* n: nodes_){
+//            if(n->get_player() == current_player_ && n->get_building_type() == BuildingType::Outpost){
+//                Move m = {n, 0, type, AssignNodeRating(n)};
+//                possible_moves.push_back(m);
+//            }
+//        }
+
+//    }else{
+//        std::cout<< "Can only call this method with Base or Outpost as input!!" << std::endl;
+//    }
+
+    current_player_->set_current_build(type);
+    int i = 1;
     for(Node* n: nodes_){
-        int rating = 0;
-        if(n->get_player() == 0){
-            std::vector<Tile*> neighbor_tiles = n->get_tiles();
-            if(neighbor_tiles.size() == 3){
-                rating += 2;
-                Resource first_resource = neighbor_tiles.at(0)->get_resource_type();
-                if(first_resource != neighbor_tiles.at(1)->get_resource_type() && first_resource != neighbor_tiles.at(2)->get_resource_type() && neighbor_tiles.at(1)->get_resource_type() != neighbor_tiles.at(2)->get_resource_type()){
-                    rating +=3;
-                }else if(first_resource != neighbor_tiles.at(1)->get_resource_type() || first_resource != neighbor_tiles.at(2)->get_resource_type()){
-                    rating +=1;
-                }
-                int sum = neighbor_tiles.at(0)->get_dice_roll_number() + neighbor_tiles.at(1)->get_dice_roll_number() + neighbor_tiles.at(1)->get_dice_roll_number() ;
-                if(sum == 15 || sum == 17 || sum == 19){
-                    rating += 2;
-                }else if(sum == 18 || sum == 20){
-                    rating += 1;
-                }
-            }else if(neighbor_tiles.size() == 2){
-                rating += 1;
-                Resource first_resource = neighbor_tiles.at(0)->get_resource_type();
-                if(first_resource != neighbor_tiles.at(1)->get_resource_type()){
-                    rating +=1;
-                }
-                int sum = neighbor_tiles.at(0)->get_dice_roll_number() + neighbor_tiles.at(1)->get_dice_roll_number();
-                if(sum == 9|| sum == 7 || sum == 13){
-                    rating += 1;
-                }
-            }
-
-            std::cout << "The rating for this move is: " << rating << std::endl;
-            Move m = {n, 0, BuildingType::Outpost, rating};
+        current_node_ = n;
+        if(CanBuildOnNode()){
+            std::cout << "adding move #" << i << std::endl;
+            Move m = {n, 0, type, AssignNodeRating(n)};
             possible_moves.push_back(m);
+            i++;
         }
-
     }
+    current_player_->set_current_build(BuildingType::None);
+    current_node_ = 0;
 
-  return possible_moves;
+ return possible_moves;
+
 }
 
-std::vector<Move> Game::CalcualtePossibleWalls(){
+std::vector<Move> Game::CalculatePossibleWalls(){
     std::vector<Move> possible_walls;
     int rating = 1;
     for(Node* n: nodes_){
@@ -163,43 +206,8 @@ std::vector<Move> Game::CalcualtePossibleWalls(){
         }
 
     }
-
-
-
       return possible_walls;
     }
-
-
-
-
-
-
-
-//    if(n->get_player() == current_player_){
-//        std::cout << "hit this statment!" << std::endl;
-//       from_node = n;
-//       rating += 2;
-//    }else{
-//        for(Player* p: n->get_players_with_incoming_walls()){
-//            if(p == current_player_)
-//                from_node = n;
-//        }
-//    }
-
-//   if(from_node != 0){
-//       for(Node* n: nodes_){
-//           // make a vector of possible to nodes by checking distance
-//           int dist = from_node->CalculateDistance(n);
-//           if(dist > 0 && dist < 60){
-//               std::cout << "pushing back a wall" << std::endl;
-//               Move m = {n, from_node, BuildingType::Wall, 0};
-//               possible_walls.push_back(m);
-//           }
-//       }
-//   }
-
-//}
-
 
 /**
  * @brief Game::CanBuildOnNode
@@ -211,18 +219,26 @@ bool Game::CanBuildOnNode(){
         // case 1: Initial Build
         if(current_player_->get_is_initial_turn()){
             // can build anywhere so long as no one else has built there yet
-            if(current_node_->get_building_type() == BuildingType::None)
+            if(current_node_->get_building_type() == BuildingType::None){
                 return true;
+            }else{
+                return false;
+            }
+
         }else{
             // you need a wall coming into the node to build an outpost
-            std::vector<Player*> players_with_incoming_walls = current_node_->get_players_with_incoming_walls();
-            for(Player* p:players_with_incoming_walls){
-                if(p == current_player_){
-                  return true;
-                }
+            if(current_node_->get_building_type() == BuildingType::None){
+                std::vector<Player*> players_with_incoming_walls = current_node_->get_players_with_incoming_walls();
+                for(Player* p:players_with_incoming_walls){
+                    if(p == current_player_){
+                        return true;
+                    }
+                 }
+            }else{
+                std::cout<< "Cannot build an outpost without a wall! " << std::endl;
+                return false;
             }
-            std::cout<< "Cannot build an outpost without a wall! " << std::endl;
-            return false;
+
         }
     case BuildingType::Base:
         // Can build a Base if current building is an outpost and you own it
@@ -532,14 +548,11 @@ bool Game::IsWinner(){
  */
 Move Game::MakeAiMove(std::vector<Move> possible_moves){
     Move best_move;
-    if(current_player_->get_is_initial_turn()){
-        best_move = possible_moves.at(0);
-        for(Move m: possible_moves){
-            if(m.rating > best_move.rating){
-                best_move = m;
-            }
+    best_move = possible_moves.at(0);
+    for(Move m: possible_moves){
+        if(m.rating > best_move.rating){
+            best_move = m;
         }
-
     }
     std::cout << best_move.rating << std::endl;
   return best_move;
@@ -695,12 +708,13 @@ void Game::TakeHumanTurn(){
  */
 void Game::TakeAiTurn(){
     // so human players can't see
-    ui->handGraphicsView->hide();
+//    ui->handGraphicsView->hide();
     UpdateBuildCard(current_player_->get_color());
+    UpdatePlayerDashboard();
     if(current_player_->get_is_initial_turn()){
         int builds = 0;
         while(builds < 2){
-            Move m = MakeAiMove(CalculatePossibleOutpostNodes());
+            Move m = MakeAiMove(CalculatePossibleMoves(BuildingType::Outpost));
             if(current_player_->ValidateCanBuild(m.type)){
                 current_node_ = m.node;
                 if(CanBuildOnNode()){
@@ -711,7 +725,7 @@ void Game::TakeAiTurn(){
         }
         int walls = 0;
         while(walls < 2){
-            Move m = MakeAiWallMove(CalcualtePossibleWalls());
+            Move m = MakeAiWallMove(CalculatePossibleWalls());
             if(current_player_->ValidateCanBuild(m.type)){
                 ToggleBuildWall(true);
                 wall_from_node_ = m.node_from;
@@ -721,10 +735,6 @@ void Game::TakeAiTurn(){
             }
 
         }
-
-
-
-
     }else{
         int dice_val = RollDice();
         if(dice_val == 7){
@@ -734,11 +744,86 @@ void Game::TakeAiTurn(){
             AllocateResources(dice_val);
         }
 
+        // strategy
+
+        while(current_player_->ValidateCanBuild(BuildingType::Base)){
+            std::vector<Move> possible_bases = CalculatePossibleMoves(BuildingType::Base);
+            if(possible_bases.size() > 0){
+                Move next_move = MakeAiMove(possible_bases);
+                current_node_ = next_move.node;
+                BuildButtonPressed(BuildingType::Base);
+            }else{
+                break;
+            }
+        }
+
+        while(current_player_->ValidateCanBuild(BuildingType::Outpost)){
+            std::vector<Move> possible_outposts = CalculatePossibleMoves(BuildingType::Outpost);
+            if(possible_outposts.size() > 0){
+                Move next_move = MakeAiMove(possible_outposts);
+                current_node_ = next_move.node;
+                BuildButtonPressed(BuildingType::Outpost);
+            }else{
+                break;
+            }
+        }
+
+        while(current_player_->ValidateCanBuild(BuildingType::Wall)){
+            std::vector<Move> possible_walls = CalculatePossibleWalls();
+            if(possible_walls.size() > 0){
+                Move next_move = MakeAiWallMove(possible_walls);
+                ToggleBuildWall(true);
+                wall_from_node_ = next_move.node_from;
+                current_node_ = next_move.node;
+                BuildButtonPressed(next_move.type);
+            }else{
+                break;
+            }
+        }
+        // if can't build anything try and trade
+
+
+
+
+        // (1) base
+//        while(current_player_->ValidateCanBuild(BuildingType::Base) ){
+//           std::cout << "Have enough resources to build a base!" << std::endl;
+//           if(CalculatePossibleMoves(BuildingType::Base).size() > 0){
+//                // try and build a base
+//                Move m = MakeAiMove(CalculatePossibleMoves(BuildingType::Base));
+//                current_node_ = m.node;
+//                if(CanBuildOnNode()){
+//                    BuildButtonPressed(BuildingType::Base);
+//                    std::cout << "Ai built a base!" << std::endl;
+//                    }
+//           }else{
+//               break;
+//           }
+//         }
+//    }
+//    //(2) Outpost
+
+//        while(current_player_->ValidateCanBuild(BuildingType::Outpost)){
+//            std::cout << "Have enough resources to build an outpost!" << std::endl;
+//            if(CalculatePossibleMoves(BuildingType::Outpost).size() > 0){
+//                 // try and build a base
+//                 Move m = MakeAiMove(CalculatePossibleMoves(BuildingType::Outpost));
+//                 current_node_ = m.node;
+//                 if(CanBuildOnNode()){
+//                     BuildButtonPressed(BuildingType::Outpost);
+//                     std::cout << "Ai built an outpost!" << std::endl;
+//                     }
+//            }else{
+//                break;
+//            }
+
+//         }
+
+
+
+//    AdvanceTurn();
     }
-
-
 }
-
 /**
  * @brief Game::UpdateBuildCard sets the color behind the build card
  * to the color passed in. Allows user to easily see who's turn it is.
@@ -1060,7 +1145,7 @@ void Game::WallNodeSelected(Node* selected_node){
                 }
 
             }else{
-                std::cout << "Not a valid choice to build a wall from, must own the node or have a wall to that node" << std::endl;
+//                std::cout << "Not a valid choice to build a wall from, must own the node or have a wall to that node" << std::endl;
             }
          // case where wall_from_node already set but current_node is unset
         }else if(current_node_ == 0){
@@ -1071,7 +1156,7 @@ void Game::WallNodeSelected(Node* selected_node){
                     }
                 }
                 if(current_node_ == 0){
-                    std::cout << "Too far away to build a wall!" << std::endl;
+//                    std::cout << "Too far away to build a wall!" << std::endl;
                 }
             }
 

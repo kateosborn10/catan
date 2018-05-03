@@ -46,8 +46,10 @@ public:
     explicit Game(QWidget *parent = 0);
     void AllocateResources(int dice_val);
     bool Attack(Node* selected_node);
-    std::vector<Move> CalculatePossibleOutpostNodes();
-    std::vector<Move> CalcualtePossibleWalls();
+    int AssignNodeRating(Node* node);
+//    std::vector<Move> CalculatePossibleBaseNodes();
+    std::vector<Move> CalculatePossibleMoves(BuildingType type);
+    std::vector<Move> CalculatePossibleWalls();
     bool CanBuildOnNode();
     void ClearGame();
     void CreateBoard();
