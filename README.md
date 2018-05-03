@@ -49,8 +49,15 @@ In a testing implementation I would focus on how my objects interact with eachot
   * Every node object contains a vector of tiles that represents the tiles that surround it. This is essential to game play and although is only created once during the game should be tested.
   * Nodes primary responsibility is keeping track of who owns the node. That is, a node must know which player has a building on it, what type of building it is and which players have walls coming into the node. I would test each aspect of this as I continue to change the owners and the building types. 
   * Nodes emit signals to the game object when they are clicked. These signals must be handeled correctly in order for players to build where they would like to build. 
- * Player Dashboard:
+* Player Dashboard:
   * Widget Group Boxes, counts and buttons can all be tested visually by interacting with the game.
   * All slots and signals would need to be tested. For example, the OnBuildOptionSelected slot should be called every time the user changes the index of the build options drop down. The test would have to ensure that when a user selects wall that the ToggleBuildWall signal is emitted and caught by the game. Futhermore, another test would make sure that the current-Building field was being appropriately set. 
 * Player:
- *
+  * I would mock up a game and create multiple players and check if their initial player configs matched up with their fields on the player objects. I would also test their hands and buildingtype owned struct with multiple builds and trades to make sure they are changing appropriately. 
+  * I would mock up a game with ai players and make sure the poorest and richest resources methods were appropriately returning the correct resources. 
+  * I would throw multiple trade options, both valid and invalid, at the player objects and see if the state is maintainged throughout. 
+  * I would throw multiple build options, both valid and invalid, at the player objects and test whether the current_build field is accurately maintained. 
+  * I would test the attack_under_way field to make sure it was set and unset properly, both during a successful attack and an unsuccessful attack. 
+* Game: The rest of my tests would fall under the game class. 
+  * The most important tests would be the ones targeting the current_node_, and wall_from_ fields. These fields are used throughout the game to build all the buildings for all the players. If the state is not properly maintained then seg faults and other errors could occur. Furthermore, my AI design depends on these fields being set properly. Therefore I would spend a lot of time mocking up different game states and testing these fields to ensure they are being set and unset properly. 
+  * Another aspect I would focus a lot of time on would be the logic surrounding building specific buidlings. There are a lot of rules and scenarios that need to be tested for building outposts, walls, and based. While these can be tested by interactin with the Ai, this can be very tedious. I would test every rule in turn in different situations. 
