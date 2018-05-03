@@ -49,3 +49,8 @@ In a testing implementation I would focus on how my objects interact with eachot
   * Every node object contains a vector of tiles that represents the tiles that surround it. This is essential to game play and although is only created once during the game should be tested.
   * Nodes primary responsibility is keeping track of who owns the node. That is, a node must know which player has a building on it, what type of building it is and which players have walls coming into the node. I would test each aspect of this as I continue to change the owners and the building types. 
   * Nodes emit signals to the game object when they are clicked. These signals must be handeled correctly in order for players to build where they would like to build. 
+ * Player Dashboard:
+  * Widget Group Boxes, counts and buttons can all be tested visually by interacting with the game.
+  * All slots and signals would need to be tested. For example, the OnBuildOptionSelected slot should be called every time the user changes the index of the build options drop down. The test would have to ensure that when a user selects wall that the ToggleBuildWall signal is emitted and caught by the game. Futhermore, another test would make sure that the current-Building field was being appropriately set. 
+* Player:
+ *
