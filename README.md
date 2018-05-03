@@ -43,3 +43,9 @@ Every time you roll a 7 (the most likely roll) you earn a troop! Once you have 3
 ### Winning the Game
 The first player to 8 victory points wins! 
 
+# Testing 
+In a testing implementation I would focus on how my objects interact with eachother. The game is responsible for maintaining most of the state of the game, however objects such as the nodes, players and player dashboard play a large role in keeping the game functioning. I will discuss how I would test these interactions separately in turn. 
+* Nodes: 
+  * Every node object contains a vector of tiles that represents the tiles that surround it. This is essential to game play and although is only created once during the game should be tested.
+  * Nodes primary responsibility is keeping track of who owns the node. That is, a node must know which player has a building on it, what type of building it is and which players have walls coming into the node. I would test each aspect of this as I continue to change the owners and the building types. 
+  * Nodes emit signals to the game object when they are clicked. These signals must be handeled correctly in order for players to build where they would like to build. 
