@@ -47,7 +47,6 @@ public:
     void AllocateResources(int dice_val);
     bool Attack(Node* selected_node);
     int AssignNodeRating(Node* node);
-//    std::vector<Move> CalculatePossibleBaseNodes();
     std::vector<Move> CalculatePossibleMoves(BuildingType type);
     std::vector<Move> CalculatePossibleWalls();
     bool CanBuildOnNode();

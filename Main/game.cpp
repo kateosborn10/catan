@@ -8,12 +8,16 @@
 #include <map>
 #include "dicerollnumber.h"
 #include "playerdisplayhandler.h"
-//#include "playerdashboard.h"
 #include "game.h"
 #include "ui_game.h"
 #include "aiplayer.h"
 #include "humanplayer.h"
 
+/**
+ * @brief QStringifyResource helper method that returns Resource type as a string
+ * @param resource the resource to be stringified
+ * @return the resource as a string
+ */
 QString QStringifyResource(Resource resource){
     switch(resource){
     case Resource::Oil:
@@ -75,9 +79,16 @@ void Game::AllocateResources(int dice_val){
     dashboard_->UpdateCounts();
 }
 
+/**
+ * @brief Game::AssignNodeRating used for the AI design. Assigns a rating 0-7 based on diversity of resources, number of neighboring tiles, and
+ * the sum of the dice roll numbers.
+ * @param node is the node to be rated
+ * @return integer rating from 0-7.
+ */
 int Game::AssignNodeRating(Node* node){
     int rating = 0;
     std::vector<Tile*> neighbor_tiles = node->get_tiles();
+    // the best nodes are ones with 3 neighbor tiles, all different resource types, with a sum of most-likely to be rolled numbers
     if(neighbor_tiles.size() == 3){
         rating += 2;
         Resource first_resource = neighbor_tiles.at(0)->get_resource_type();
@@ -139,8 +150,9 @@ bool Game::Attack(Node* selected_node){
 }
 
 /**
- * @brief Game::CalculatePossibleMoves
- * @return
+ * @brief Game::CalculatePossibleMoves Used in AI design. Iterates through node list and checks if there is a valid
+ * move given a building type. Every valid move is assigned a rating and added to moves list
+ * @return possible moves list for current player
  */
 std::vector<Move> Game::CalculatePossibleMoves(BuildingType type){
     std::vector<Move> possible_moves;
@@ -161,6 +173,11 @@ std::vector<Move> Game::CalculatePossibleMoves(BuildingType type){
 
 }
 
+/**
+ * @brief Game::CalculatePossibleWalls Used by AI design. Iterates through nodes and checks to see if every possible wall
+ * is a valid wall. Adds valid walls to Moves list with a static rating of 1.
+ * @return list of all possible walls that can be built by current player
+ */
 std::vector<Move> Game::CalculatePossibleWalls(){
     std::vector<Move> possible_walls;
     int rating = 1;
@@ -186,8 +203,10 @@ std::vector<Move> Game::CalculatePossibleWalls(){
     }
 
 /**
- * @brief Game::CanBuildOnNode
- * @return
+ * @brief Game::CanBuildOnNode is responsible for all the logic surrounding building outposts and bases.
+ * One small difference from Real Catan: this version does not enforce the two intersections away rule.
+ * Note: current_node_ and current_player->current_build must be set before calling this.
+ * @return true if current player can build their current build on current node.
  */
 bool Game::CanBuildOnNode(){
     switch(current_player_->get_current_build()){
@@ -517,9 +536,10 @@ bool Game::IsWinner(){
 }
 
 /**
- * @brief Game::MakeAiMove
- * @param possible_moves
- * @return
+ * @brief Game::MakeAiMove used in AI implementation. Given an input of a vector
+ * of possible moves(outposts and bases only), chooses a move with the highest rating.
+ * @param possible_moves is a vector of possible moves from the current ai player
+ * @return a move with the highest rating
  */
 Move Game::MakeAiMove(std::vector<Move> possible_moves){
     Move best_move;
@@ -532,6 +552,12 @@ Move Game::MakeAiMove(std::vector<Move> possible_moves){
   return best_move;
 }
 
+/**
+ * @brief Game::MakeAiWallMove used for AI implementation. Chooses a wall at random
+ * to build.
+ * @param possible_walls is a list of possible walls the current ai player can build.
+ * @return a move encapsultaing a wall for the ai player
+ */
 Move Game::MakeAiWallMove(std::vector<Move> possible_walls){
     srand(time(NULL));
     int rand_wall = rand() % (possible_walls.size());
@@ -542,12 +568,17 @@ Move Game::MakeAiWallMove(std::vector<Move> possible_walls){
 
 /**
  * @brief Game::TakeInitialTurn displays a QMessageBox to user informing them of the instructions
+ * @param message is the message that will be displayed to the user in the message box.
  */
 void Game::PopUpQMessageBox(QString message){
     QMessageBox* initial_turn_instructions = new QMessageBox(QMessageBox::Icon::Information, "dialog", message, QMessageBox::StandardButton::Ok);
     initial_turn_instructions->show();
 
 }
+/**
+ * @brief Game::RollDice sets two random numbers between 1 and 6 and returns the sum
+ * @return the sum of the dice as an int
+ */
 int Game::RollDice(){
     srand(time(NULL));
     int die1 = rand() % 6 + 1;
@@ -660,8 +691,7 @@ void Game::TakeHumanTurn(){
         ui->diceLineEdit->setText(QString::number(dice_val));
         if(dice_val == 7){
             QString troop_content = "Congrats, you earned a new troop! By rolling a 7 you gained a troop for your army. Once you have three troops you can attack one of your enemies.";
-            QMessageBox* troop_notification = new QMessageBox(QMessageBox::Icon::Information, "Congrats!", troop_content, QMessageBox::StandardButton::Ok);
-            troop_notification->show();
+            PopUpQMessageBox(troop_content);
             current_player_->IncrementTroopCount(1);
             dashboard_->UpdateCounts();
         }else{
@@ -678,10 +708,12 @@ void Game::TakeHumanTurn(){
  * hand graphics view.
  */
 void Game::TakeAiTurn(){
-    // so human players can't see
+// uncomment the following line to see the ai's hand for debugging
 //    ui->handGraphicsView->hide();
     UpdateBuildCard(current_player_->get_color());
     UpdatePlayerDashboard();
+
+    // Initial turn strategy: Build two outposts with highest rating, then build two walls
     if(current_player_->get_is_initial_turn()){
         int builds = 0;
         while(builds < 2){
@@ -707,18 +739,24 @@ void Game::TakeAiTurn(){
 
         }
     }else{
+        // if it is not initial turn then roll dice and proceed
         int dice_val = RollDice();
         if(dice_val == 7){
-            std::cout << "AI rolled a 7!" << std::endl;
+            QString ai_troop_notification = "BEWARE: " + QString::fromStdString(current_player_->get_name()) + " just earned a troop!";
+            PopUpQMessageBox(ai_troop_notification);
             current_player_->IncrementTroopCount(1);
         }else{
             ui->diceLineEdit->setText(QString::number(dice_val));
             AllocateResources(dice_val);
         }
 
-        QString hand = "AI has: " + QString::number(current_player_->get_hand()->oil) + " Oil, " + QString::number(current_player_->get_hand()->food) + " Corn, and "
+        // uncomment following lines for testing the AI
+        QString hand = "Before AI made a move it had: " + QString::number(current_player_->get_hand()->oil) + " Oil, " + QString::number(current_player_->get_hand()->food) + " Corn, and "
                 + QString::number(current_player_->get_hand()->steel) +" steel";
         PopUpQMessageBox(hand);
+
+/************************************ AI STRATEGY ********************************************************/
+        //(1) Check if attacking is possible, if so attack.
 
         if(current_player_->get_number_attack_troops() > 2){
             std::cout << "Ai has enough troops to attack!" << std::endl;
@@ -733,6 +771,7 @@ void Game::TakeAiTurn(){
             }
         }
 
+        //(2) Build bases until ai can no longer build any more bases
         while(current_player_->ValidateCanBuild(BuildingType::Base)){
             std::vector<Move> possible_bases = CalculatePossibleMoves(BuildingType::Base);
             if(possible_bases.size() > 0){
@@ -745,6 +784,7 @@ void Game::TakeAiTurn(){
             }
         }
 
+        //(3) Build outposts until ai can no longer build any more outposts
         while(current_player_->ValidateCanBuild(BuildingType::Outpost)){
             std::vector<Move> possible_outposts = CalculatePossibleMoves(BuildingType::Outpost);
             if(possible_outposts.size() > 0){
@@ -757,6 +797,7 @@ void Game::TakeAiTurn(){
             }
         }
 
+        //(4) Build walls until ai can no longer build any more walls
         while(current_player_->ValidateCanBuild(BuildingType::Wall)){
             std::vector<Move> possible_walls = CalculatePossibleWalls();
             if(possible_walls.size() > 0){
@@ -771,15 +812,16 @@ void Game::TakeAiTurn(){
                 break;
             }
         }
-        // if can't build anything try and trade
-        QString hand2 = "AI has: " + QString::number(current_player_->get_hand()->oil) + " Oil, " + QString::number(current_player_->get_hand()->food) + " Corn, and "
-                + QString::number(current_player_->get_hand()->steel) +" steel";
-        PopUpQMessageBox(hand2);
+        //(5) Check if trading makes sense.
+
         Resource richest = current_player_->RichestResource();
         Resource poorest = current_player_->PoorestResource();
 
+        //uncomment out the following lines if testing the AI
         QString trade_message = "The richest resource is: " + QStringifyResource(richest) + " and the poorest is: " + QStringifyResource(poorest);
         PopUpQMessageBox(trade_message);
+
+        // Only trade if the richest resources has a count of 5 or more. That way after the trade, you still have enough of that resource to build a base.
         bool trade_suggested = false;
         switch(richest){
         case Resource::Oil:
@@ -806,10 +848,11 @@ void Game::TakeAiTurn(){
 
         }
 
-
+//uncomment the following line if you want to test the AI. Note you will have to manually press the Advance Turn button for the ai
 //    AdvanceTurn();
     }
 }
+
 /**
  * @brief Game::UpdateBuildCard sets the color behind the build card
  * to the color passed in. Allows user to easily see who's turn it is.
@@ -895,7 +938,7 @@ Game::~Game(){
 
 
 
-//////SLOTS
+/******************************************* SLOTS ************************************************/
 
 /**
  * @brief Game::AdvanceTurn is a slot that is signaled when a user presses advance
@@ -1040,8 +1083,10 @@ void Game::PlayGame() {
 }
 
 /**
- * @brief Game::Select
- * @param selected_node
+ * @brief Game::Select is called when a user clicks on a node on main window. Signaled by player dashboard.
+ * Discerns between an attack click and a non-attack click. Calls CanBuildOnNode method to verify build.
+ * If build is verified then this slot emits a signal to the player dashboard to enable the build button.
+ * @param selected_node is the node the user clicked on
  */
 void Game::Select(Node* selected_node){
     if(current_player_->get_attack_under_way()){
@@ -1116,10 +1161,7 @@ void Game::WallNodeSelected(Node* selected_node){
                     if(p == current_player_)
                         valid_wall = true;
                 }
-            }else{
-
             }
-
             if(valid_wall == true){
              // if node passes the above tests and is a valid choice the set it as wall_from_node
                 wall_from_node_ = selected_node;
@@ -1130,9 +1172,6 @@ void Game::WallNodeSelected(Node* selected_node){
                         possible_to_nodes_.push_back(n);
                     }
                 }
-
-            }else{
-
             }
          // case where wall_from_node already set but current_node is unset
         }else if(current_node_ == 0){
@@ -1142,9 +1181,6 @@ void Game::WallNodeSelected(Node* selected_node){
                         current_node_ = selected_node;
                     }
                 }
-//                if(current_node_ == 0){
-
-//                }
             }
 
         // case where both current and wall_from nodes are set and valid
@@ -1156,7 +1192,6 @@ void Game::WallNodeSelected(Node* selected_node){
                 current_node_ = 0;
                 wall_from_node_ = 0;
              }
-
         }
     }
 }

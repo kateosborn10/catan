@@ -1,10 +1,12 @@
-#ifndef PLAYERDASHBOARD_H
-#define PLAYERDASHBOARD_H
 /**
   Player dashboard shows at bottom of main window
   Displays resources and their respective count on each player's turn
   Gives build options
 */
+
+#ifndef PLAYERDASHBOARD_H
+#define PLAYERDASHBOARD_H
+
 #include <QObject>
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -29,19 +31,22 @@ public:
     QPushButton* attack_button_ = new QPushButton("Attack");
 
 signals:
+      void Attack();
       void PlaceBuilding(BuildingType building);
       void ToggleBuildWall(bool value);
-      void Attack();
+
 
 public slots:
-      void OnBuildOptionSelected(int index);
-      void EnableBuild(bool disable_value);
+      void AttackButtonPressed();
+      void AttackCountChanged(QString input);
       void BuildButtonPressed();
+      void EnableBuild(bool disable_value);
+      void OnBuildOptionSelected(int index);
       void OnTradeAwayOptionSelected(int index);
       void OnTradeForOptionSelected(int index);
       void TradeButtonPressed();
-      void AttackCountChanged(QString input);
-      void AttackButtonPressed();
+
+
 
 private:
     BuildingType current_building_;

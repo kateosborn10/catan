@@ -16,7 +16,7 @@ Keeps score
 #include <QColor>
 
 
-
+// used for initialization purposes
 struct PlayerConfig {
     std::string name;
     bool is_ai = false;
@@ -24,6 +24,7 @@ struct PlayerConfig {
     QColor color;
 };
 
+// represents the resource cards in a catan hand
 struct Hand {
     int oil = 4;
     int steel = 4;
@@ -52,7 +53,6 @@ public:
     Hand* get_hand(){return hand_;}
     void set_hand(Hand* hand) {hand_ = hand;}
     BuildingTypeOwned* get_BuildingType_owned(){ return BuildingType_owned_;}
-//    void set_BuildingType_owned(BuildingTypeOwned* BuildingType){BuildingType_owned_ = BuildingType;}
     int GetBuildingOwnedCount(BuildingType building);
     void AddBuildingToBuildingTypeOwned(BuildingType building);
     void RemoveBuildingToBuildingTypeOwned(BuildingType building);

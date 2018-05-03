@@ -1,3 +1,8 @@
+/**
+  * Represents the tiles on the catan board. Contain
+  * Polygon objects, resource type and integer value of dice roll number
+  */
+
 #ifndef TILE_H
 #define TILE_H
 #include <QPolygonF>

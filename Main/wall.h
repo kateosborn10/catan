@@ -1,3 +1,7 @@
+/**
+  * Derived Class of Building. Creates a QLineF that can be drawn between
+  * two nodes to represent a wall.
+  */
 #ifndef WALL_H
 #define WALL_H
 

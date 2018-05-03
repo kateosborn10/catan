@@ -76,32 +76,52 @@ PlayerDashboard::PlayerDashboard(QObject *parent) : QObject(parent)
 }
 
 /**
- * @brief PlayerDashboard::UpdateCounts updates the display counts of resources and scorebox
+ * @brief PlayerDashboard::AttackButtonPressed slot called when user clicks attack button.
+ * Emits signal to game that button has been presesd.
  */
-void PlayerDashboard::UpdateCounts() {
-    oil_widget->UpdateCount(current_player_->get_hand()->oil);
-    food_widget->UpdateCount(current_player_->get_hand()->food);
-    steel_widget->UpdateCount(current_player_->get_hand()->steel);
-    scoreboard_box_->UpdateCounts(current_player_->get_BuildingType_owned());
-    attack_count_->setText(QString::number(current_player_->get_number_attack_troops()));
+void PlayerDashboard::AttackButtonPressed(){
+    emit Attack();
 }
 
 /**
- * @brief PlayerDashboard::set_current_player sets the current player field.
- * connects the signals and slots between player and dashboard.
- * @param player is the current player in the game
+ * @brief PlayerDashboard::AttackCountChanged slot called number of troops changed.
+ * Disables attack button if number of troops is at least 3
+ * @param input is the number of troops
  */
-void PlayerDashboard::set_current_player(Player *player){
-    current_player_ = player;
-    std::cout << "setting current player to: " << current_player_->get_name() << std::endl;
-    // when user changes the index of the build options combo box call OnBuildOptionSelected method
-    connect(select_build_option_, SIGNAL(currentIndexChanged(int)), this, SLOT(OnBuildOptionSelected(int)));
-    // when user changes the index of the trade away options combo box call OnTradeOptionSelected method
-    connect(trade_away_option_, SIGNAL(currentIndexChanged(int)), this, SLOT(OnTradeAwayOptionSelected(int)));
-    // when user changes the index of the trade away options combo box call OnTradeOptionSelected method
-    connect(trade_for_option_, SIGNAL(currentIndexChanged(int)), this, SLOT(OnTradeForOptionSelected(int)));
-
+void PlayerDashboard::AttackCountChanged(QString input){
+    if(input.toInt() >= 3){
+        attack_button_->setDisabled(false);
+    }
 }
+
+/**
+ * @brief PlayerDashboard::BuildButtonPressed for slot when user presses build this method
+ * will emit a signal to the game to tell it to place the building. Will also call ResetButtons
+ * method to set the intial states of the buttons.
+ */
+void PlayerDashboard::BuildButtonPressed() {
+    emit PlaceBuilding(current_building_);
+    ResetButtons();
+}
+
+/**
+ * @brief PlayerDashboard::DisableAttackButton slot called by game to disable attack button.
+ */
+void PlayerDashboard::DisableAttackButton(){
+    attack_button_->setDisabled(true);
+}
+
+
+/**
+ * @brief PlayerDashboard::EnableBuild handles the enabling of the build button.
+ * If a player has the resources to build a given building type the player class
+ * emits a signal to enable the build button.
+ * @param disable_value will be false if the button needs to be enable.
+ */
+void PlayerDashboard::EnableBuild(bool disable_value){
+    build_button_->setDisabled(disable_value);
+}
+
 
 /**
  * @brief PlayerDashboard::OnBuildOptionSelected slot called when user changes
@@ -134,41 +154,12 @@ void PlayerDashboard::OnBuildOptionSelected(int index){
         current_building_ = building;
 
 }
-/**
- * @brief PlayerDashboard::EnableBuild handles the enabling of the build button.
- * If a player has the resources to build a given building type the player class
- * emits a signal to enable the build button.
- * @param disable_value will be false if the button needs to be enable.
- */
-void PlayerDashboard::EnableBuild(bool disable_value){
-    build_button_->setDisabled(disable_value);
-}
+
 
 /**
- * @brief PlayerDashboard::ResetButtons used to reset the build and select build
- * option combo box to their initial states: disabled and "Select One" respectively
- */
-void PlayerDashboard::ResetButtons(){
-    build_button_->setDisabled(true);
-    select_build_option_->setCurrentIndex(0);
-    trade_away_option_->setCurrentIndex(0);
-    trade_for_option_->setCurrentIndex(0);
-    trade_button_->setDisabled(true);
-}
-
-/**
- * @brief PlayerDashboard::BuildButtonPressed for slot when user presses build this method
- * will emit a signal to the game to tell it to place the building. Will also call ResetButtons
- * method to set the intial states of the buttons.
- */
-void PlayerDashboard::BuildButtonPressed() {
-    emit PlaceBuilding(current_building_);
-    ResetButtons();
-}
-
-/**
- * @brief PlayerDashboard::OnTradeOptionSelected
- * @param index
+ * @brief PlayerDashboard::OnTradeAwayOptionSelected slot called when trade away
+ * combo box changes index.
+ * @param index of current position of combo box.
  */
 void PlayerDashboard::OnTradeAwayOptionSelected(int index){
     trade_away_ = Resource::None;
@@ -192,8 +183,9 @@ void PlayerDashboard::OnTradeAwayOptionSelected(int index){
 
 }
 /**
- * @brief PlayerDashboard::OnTradeOptionSelected
- * @param index
+ * @brief PlayerDashboard::OnTradeForOptionSelected slot called when trade for
+ * combo box changes index.
+ * @param index of current position of combo box.
  */
 void PlayerDashboard::OnTradeForOptionSelected(int index){
     trade_for_ = Resource::None;
@@ -217,8 +209,23 @@ void PlayerDashboard::OnTradeForOptionSelected(int index){
 
 }
 
+
 /**
- * @brief PlayerDashboard::TradeButtonPressed
+ * @brief PlayerDashboard::ResetButtons used to reset the build and select build
+ * option combo box to their initial states: disabled and "Select One" respectively
+ */
+void PlayerDashboard::ResetButtons(){
+    build_button_->setDisabled(true);
+    select_build_option_->setCurrentIndex(0);
+    trade_away_option_->setCurrentIndex(0);
+    trade_for_option_->setCurrentIndex(0);
+    trade_button_->setDisabled(true);
+}
+
+
+/**
+ * @brief PlayerDashboard::TradeButtonPressed slot called when user pressed trade button.
+ * Carries out actions of trading, adding and removing resources from players.
  */
 void PlayerDashboard::TradeButtonPressed() {
     current_player_->AddResourceToHand(trade_for_, 1);
@@ -228,18 +235,35 @@ void PlayerDashboard::TradeButtonPressed() {
 
 }
 
-void PlayerDashboard::AttackCountChanged(QString input){
-    if(input.toInt() >= 3){
-        attack_button_->setDisabled(false);
-    }
+/**
+ * @brief PlayerDashboard::set_current_player sets the current player field.
+ * connects the signals and slots between player and dashboard.
+ * @param player is the current player in the game
+ */
+void PlayerDashboard::set_current_player(Player *player){
+    current_player_ = player;
+    // when user changes the index of the build options combo box call OnBuildOptionSelected method
+    connect(select_build_option_, SIGNAL(currentIndexChanged(int)), this, SLOT(OnBuildOptionSelected(int)));
+    // when user changes the index of the trade away options combo box call OnTradeOptionSelected method
+    connect(trade_away_option_, SIGNAL(currentIndexChanged(int)), this, SLOT(OnTradeAwayOptionSelected(int)));
+    // when user changes the index of the trade away options combo box call OnTradeOptionSelected method
+    connect(trade_for_option_, SIGNAL(currentIndexChanged(int)), this, SLOT(OnTradeForOptionSelected(int)));
+
 }
 
-void PlayerDashboard::AttackButtonPressed(){
-    emit Attack();
+
+/**
+ * @brief PlayerDashboard::UpdateCounts updates the display counts of resources and scorebox
+ */
+void PlayerDashboard::UpdateCounts() {
+    oil_widget->UpdateCount(current_player_->get_hand()->oil);
+    food_widget->UpdateCount(current_player_->get_hand()->food);
+    steel_widget->UpdateCount(current_player_->get_hand()->steel);
+    scoreboard_box_->UpdateCounts(current_player_->get_BuildingType_owned());
+    attack_count_->setText(QString::number(current_player_->get_number_attack_troops()));
 }
 
-void PlayerDashboard::DisableAttackButton(){
-    attack_button_->setDisabled(true);
-}
+
+
 
 

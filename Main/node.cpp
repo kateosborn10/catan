@@ -4,10 +4,6 @@
 #include <iostream>
 #include <math.h>
 
-
-// have to forward declare the statuc fields as NULL
-
-
 /**
  * @brief Node::Node
  * @param position
@@ -20,60 +16,14 @@ Node::Node(QPointF position, std::vector<Tile*> tiles)
     y_ = position_.ry();
     tiles_ = tiles;
 }
-
 /**
- * sets the boundary rectangle of a cell to (x,y) position and width, height
- * @return  the QRectF object
+ * @brief Node::Build is called by Game to encapsulate a building on the node.
+ * This is achieved by setting player and building type to the param values and
+ * coloring the node the color of the player to display ownership. If the building type
+ * is a base then the shape is altered to be an oval.
+ * @param building is the type of the building to be displayed on the node
+ * @param current_player is the owner of the building
  */
-QRectF Node::boundingRect() const
-{
-    int rect_width = width_ + .75 * width_;
-    int rect_height = height_ + .5 * height_;
-
-    return QRectF(x_- .5* rect_width, y_  - .5* rect_height, rect_width, rect_height );
-}
-
-/**
- * adds the rect to the painter path
- * @return the path
- */
-QPainterPath Node::shape() const
-{
-    QPainterPath path;
-    path.addEllipse(position_, width_, height_);
-    return path;
-}
-
-/**
- * paint method draws the cell rectangle to the screen and fills with color
- * @param painter
- * @param option
- * @param widget
- */
-void Node::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-{
-    Q_UNUSED(widget);
-
-    QBrush b = painter->brush();
-
-    painter->setBrush(QBrush(color_, Qt::BrushStyle::SolidPattern));
-    painter->drawEllipse(position_, width_, height_);
-
-    painter->setBrush(b);
-}
-
-/**
- * @brief Node::mousePressEvent
- * @param event
- */
-void Node::mousePressEvent(QGraphicsSceneMouseEvent *event){
-    if(event->button() == Qt::LeftButton)
-        emit NodeSelected(this);
-    if(event->button() == Qt::RightButton){
-        emit WallNodeSelected(this);
-    }
-}
-
 void Node::Build(BuildingType building, Player* current_player){
     switch(building){
     case BuildingType::Wall:
@@ -104,6 +54,24 @@ void Node::Build(BuildingType building, Player* current_player){
 
 }
 
+/**
+ * sets the boundary rectangle of a cell to (x,y) position and width, height
+ * @return  the QRectF object
+ */
+QRectF Node::boundingRect() const
+{
+    int rect_width = width_ + .75 * width_;
+    int rect_height = height_ + .5 * height_;
+
+    return QRectF(x_- .5* rect_width, y_  - .5* rect_height, rect_width, rect_height );
+}
+
+/**
+ * @brief Node::CalculateDistance finds the euclidian distance between two node objects.
+ * Used by game to verify a wall is allowed. A disance between 0-55 represents a valid wall.
+ * @param other is the node to calculate distance to.
+ * @return the distance as float
+ */
 float Node::CalculateDistance(Node *other){
     float diffx = x_ - other->get_position().rx();
     float diffy = y_ -other->get_position().ry();
@@ -112,11 +80,38 @@ float Node::CalculateDistance(Node *other){
     return sqrt((diffx * diffx) + (diffy * diffy));
 }
 
-void Node::ChangeOwner(Player* new_owner){
-    player_ = new_owner;
-    color_ = player_->get_color();
-    update();
 
+/**
+ * @brief Node::mousePressEvent emits a signal to game when the user clicks on a node.
+ * If user right clicks then this slot tells game to build a wall, if user left clicks
+ * then slot tells game to build a non-wall building.
+ * @param event
+ */
+void Node::mousePressEvent(QGraphicsSceneMouseEvent *event){
+    if(event->button() == Qt::LeftButton)
+        emit NodeSelected(this);
+    if(event->button() == Qt::RightButton){
+        emit WallNodeSelected(this);
+    }
+}
+
+/**
+ * paint method draws the cell rectangle to the screen and fills with color
+ * @param painter
+ * @param option
+ * @param widget
+ */
+void Node::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+    Q_UNUSED(widget);
+    Q_UNUSED(option);
+
+    QBrush b = painter->brush();
+
+    painter->setBrush(QBrush(color_, Qt::BrushStyle::SolidPattern));
+    painter->drawEllipse(position_, width_, height_);
+
+    painter->setBrush(b);
 }
 
 void Node::RemoveBuilding(){
@@ -125,3 +120,16 @@ void Node::RemoveBuilding(){
     color_ = "white";
 
 }
+
+/**
+ * adds the rect to the painter path
+ * @return the path
+ */
+QPainterPath Node::shape() const
+{
+    QPainterPath path;
+    path.addEllipse(position_, width_, height_);
+    return path;
+}
+
+

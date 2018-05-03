@@ -1,3 +1,7 @@
+/**
+  * QGraphicsEllipseItem that encapsulates the dice roll chits on Catan.
+  * Draws a circle and adds dice rool number in center.
+  */
 #ifndef DICEROLLNUMBER_H
 #define DICEROLLNUMBER_H
 

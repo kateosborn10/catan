@@ -1,3 +1,7 @@
+/**
+  Building is a Base class that encapuslates the buildings of the Game.
+  Walls are a derived class.
+*/
 #ifndef BUILDING_H
 #define BUILDING_H
 #include <QObject>

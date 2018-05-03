@@ -30,7 +30,6 @@ public:
     void set_is_selected(bool is_selected) { is_selected_ = is_selected; }
     std::vector<Player*> get_players_with_incoming_walls(){ return players_with_incoming_walls_; }
     float CalculateDistance(Node* other);
-    void ChangeOwner(Player* new_owner);
     void RemoveBuilding();
 
 
@@ -53,7 +52,6 @@ private:
     int height_ = 8;
     qreal x_;
     qreal y_;
-//    static Node* wall_from_; // stores source Node for drawing a wall
     std::vector<Player*> players_with_incoming_walls_;
 
 
