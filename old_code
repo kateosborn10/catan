@@ -1,6 +1,0 @@
-  if(wall_from_ == 0)
-            wall_from_ = this;
-        else{
-            emit secondNodeForWallSelected(wall_from_, this);
-            wall_from_ = 0;
-        }
